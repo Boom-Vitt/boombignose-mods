@@ -1,0 +1,1 @@
+{ "name": "pdpa-blur", "version": "0.1.0", "description": "Blurs PDPA personal data (Thai ID, phone, email, card, account, IP, secrets...) in the transcript; hover to reveal. /pdpa-blur toggles.", "types": "./types/index.d.ts" }

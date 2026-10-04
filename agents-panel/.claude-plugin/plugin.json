@@ -1,0 +1,1 @@
+{ "name": "agents-panel", "version": "0.1.0", "description": "Side pane listing this project's agents with a run button each; /agents-panel toggles it.", "types": "./types/index.d.ts" }
