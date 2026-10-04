@@ -1,0 +1,36 @@
+name: รายงานข้อผิดพลาด / Bug report
+description: มอดทำงานผิดพลาด หรือข้อมูลส่วนบุคคลหลุดผ่านตัวป้องกัน / A mod misbehaves, or personal data got past the guard
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **ห้ามแปะข้อมูลส่วนบุคคลจริง** (เลขประจำตัวประชาชน เบอร์โทร อีเมล ฯลฯ) ลงใน issue นี้ ให้ใช้ข้อมูลสมมติที่ให้ผลเหมือนกัน
+        **Never paste real personal data** into this issue. Use fake values that reproduce the same behaviour.
+
+        วิธีหลบเลี่ยงตัวป้องกันได้อย่างสม่ำเสมอถือเป็นช่องโหว่ ให้รายงานแบบส่วนตัวตาม [SECURITY.md](https://github.com/Boom-Vitt/claude-mods-boombignose/blob/main/SECURITY.md) แทนการเปิด issue นี้
+        A technique that reliably slips data past the guard is a vulnerability: report it privately as described in [SECURITY.md](https://github.com/Boom-Vitt/claude-mods-boombignose/blob/main/SECURITY.md), not here.
+  - type: dropdown
+    id: mod
+    attributes:
+      label: มอด / Mod
+      options: [pdpa-thai, context-bar, agents-panel, อื่น ๆ / other]
+    validations: { required: true }
+  - type: textarea
+    id: what
+    attributes:
+      label: เกิดอะไรขึ้น / What happened
+      description: สิ่งที่คาดหวัง และสิ่งที่เกิดจริง / What you expected and what you got
+    validations: { required: true }
+  - type: textarea
+    id: repro
+    attributes:
+      label: ขั้นตอนทำซ้ำ / Steps to reproduce
+      description: ถ้าเป็นข้อมูลที่ตรวจไม่เจอ ให้ใส่ตัวอย่างสมมติรูปแบบเดียวกัน / For a missed detection, give a fake sample in the same format
+    validations: { required: true }
+  - type: input
+    id: version
+    attributes:
+      label: เวอร์ชันมอด (`claude plugin list`) เวอร์ชัน Claude Code (`claude --version`) และระบบปฏิบัติการ / Mod version, Claude Code version and OS
+      description: "สำหรับ pdpa-thai ระบุด้วยว่าแถบสถานะแสดง `PDPA: redact` หรือ `PDPA: block` หรือไม่ หากไม่แสดง แสดงว่ามอดไม่ได้โหลด / For pdpa-thai, also say whether the status line showed `PDPA: redact` or `PDPA: block`; if not, the mod did not load"
+    validations: { required: true }

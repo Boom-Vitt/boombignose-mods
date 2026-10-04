@@ -1,1 +1,13 @@
-{ "name": "agents-panel", "version": "0.1.0", "description": "Side pane listing this project's agents with a run button each; /agents-panel toggles it.", "types": "./types/index.d.ts" }
+{
+  "name": "agents-panel",
+  "version": "0.1.0",
+  "description": "Side pane listing project, user and plugin agents with a run button each; /agents-panel toggles it.",
+  "author": {
+    "name": "Boom-Vitt",
+    "url": "https://github.com/Boom-Vitt"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/Boom-Vitt/claude-mods-boombignose",
+  "repository": "https://github.com/Boom-Vitt/claude-mods-boombignose",
+  "types": "./types/index.d.ts"
+}

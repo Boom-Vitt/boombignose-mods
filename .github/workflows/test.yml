@@ -1,0 +1,36 @@
+name: test
+on: [push, pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
+
+jobs:
+  mods:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with: { node-version: "22" }
+      - run: npm install -g @anthropic-ai/claude-code
+      - name: Validate marketplace and every mod
+        run: |
+          claude plugin validate .
+          for m in context-bar agents-panel pdpa-thai; do claude plugin validate "$m"; done
+      - name: Mod tests
+        run: for m in context-bar pdpa-thai; do claude plugin test "$m"; done
+      - name: Local-only check (no network, process, model or MCP calls from any mod)
+        run: |
+          if grep -rnE '\$\.(http|process|model|mcp)\b|\bfetch\(' --include='*.ts' --include='*.tsx' --exclude-dir=tests */hooks; then
+            echo '::error::a mod calls the network, a process, a model or MCP; the local-only statement in README no longer holds'
+            exit 1
+          fi
+      - name: pdpa-thai engine calls stay on an allowlist
+        run: |
+          # the engine's own analysis of what the module calls; fail closed if the line is missing
+          calls=$(claude plugin validate pdpa-thai | grep -E 'calls:' | sed 's/.*calls: //')
+          [ -n "$calls" ] || { echo '::error::validate printed no calls line for pdpa-thai'; exit 1; }
+          echo "$calls"
+          bad=$(echo "$calls" | tr ',' '\n' | sed -E 's/^ *\$\.([a-z]+).*/\1/' | sort -u | grep -vxE 'state|ui|clock|command' || true)
+          [ -z "$bad" ] || { echo "::error::pdpa-thai calls outside state, ui, clock, command: $bad"; exit 1; }
+      - name: JSON manifests parse
+        run: for f in .claude-plugin/*.json */.claude-plugin/plugin.json */hooks/hooks.json; do python3 -m json.tool "$f" > /dev/null; done

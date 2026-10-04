@@ -52,7 +52,7 @@ export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: 'agents-panel',
-      description: 'Show or hide a side pane listing this project\'s agents',
+      description: 'Show or hide a side pane listing project, user and plugin agents',
     })
     return next(e)
   })

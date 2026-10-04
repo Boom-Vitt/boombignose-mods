@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: รายงานช่องโหว่ความปลอดภัยแบบส่วนตัว / Report a vulnerability privately
+    url: https://github.com/Boom-Vitt/claude-mods-boombignose/blob/main/SECURITY.md
+    about: อย่าเปิด issue สาธารณะสำหรับช่องโหว่ ให้ทำตาม SECURITY.md ซึ่งระบุวิธีขอช่องทางส่วนตัวไว้ด้วยหากไม่พบปุ่ม Report a vulnerability / Do not open a public issue for a vulnerability; follow SECURITY.md, which also says what to do if the Report a vulnerability option is not shown.

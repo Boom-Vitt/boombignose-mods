@@ -1,3 +1,5 @@
-.claude-plugin/types/
+**/.claude-plugin/types/
 tsconfig.json
 .DS_Store
+graft/
+.ignore

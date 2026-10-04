@@ -1,1 +1,13 @@
-{ "name": "context-bar", "version": "0.4.0", "description": "Context window breakdown and prompt-cache countdown above the prompt; /context-bar toggles it.", "types": "./types/index.d.ts" }
+{
+  "name": "context-bar",
+  "version": "0.4.0",
+  "description": "Context window breakdown and prompt-cache countdown above the prompt; /context-bar toggles it.",
+  "author": {
+    "name": "Boom-Vitt",
+    "url": "https://github.com/Boom-Vitt"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/Boom-Vitt/claude-mods-boombignose",
+  "repository": "https://github.com/Boom-Vitt/claude-mods-boombignose",
+  "types": "./types/index.d.ts"
+}

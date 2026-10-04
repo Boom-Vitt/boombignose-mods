@@ -1,0 +1,14 @@
+name: ขอฟีเจอร์ / Feature request
+description: เสนอการตรวจจับข้อมูลชนิดใหม่ หรือความสามารถใหม่ / Propose a new detector or capability
+labels: [enhancement]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: ต้องการอะไร และใช้ทำอะไร / What and why
+    validations: { required: true }
+  - type: textarea
+    id: format
+    attributes:
+      label: ตัวอย่างรูปแบบข้อมูล (สมมติ) / Sample format (fake)
+      description: "สำหรับตัวตรวจจับใหม่ ระบุรูปแบบและวิธีตรวจความถูกต้อง (เช่น check digit) พร้อมแหล่งอ้างอิง / For a new detector, give the format, any validity check, and a source"

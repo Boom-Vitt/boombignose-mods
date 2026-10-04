@@ -1,0 +1,40 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "claude-mods-boombignose",
+  "owner": {
+    "name": "Boom-Vitt",
+    "url": "https://github.com/Boom-Vitt"
+  },
+  "metadata": {
+    "description": "Claude Code mods for Thai users: PDPA guard, context bar, agents panel"
+  },
+  "plugins": [
+    {
+      "name": "pdpa-thai",
+      "source": "./pdpa-thai",
+      "description": "ช่วยลดความเสี่ยงในการส่งข้อมูลส่วนบุคคลให้ Claude: ปกปิดเลขประจำตัวประชาชน เบอร์โทร อีเมล บัญชีธนาคาร ฯลฯ ที่ตรวจพบก่อนส่ง และพรางบนหน้าจอ ตรวจจับภายในเครื่องและมอดไม่เรียกเครือข่ายเอง แต่บทสนทนาที่ปกปิดแล้วยังถูกส่งไปยังผู้ให้บริการโมเดลที่ตั้งค่าไว้ (โดยค่าเริ่มต้นคือ Anthropic) ตามปกติ ไม่รับประกันผล ไม่ใช่คำแนะนำทางกฎหมาย",
+      "version": "0.2.0",
+      "license": "MIT",
+      "category": "security",
+      "keywords": ["pdpa", "thailand", "privacy", "pii", "redaction", "guardrail"]
+    },
+    {
+      "name": "context-bar",
+      "source": "./context-bar",
+      "description": "แถบแสดงการใช้ context window แยกตามหมวด พร้อมตัวนับเวลา prompt cache",
+      "version": "0.4.0",
+      "license": "MIT",
+      "category": "development",
+      "keywords": ["context", "cache", "statusline"]
+    },
+    {
+      "name": "agents-panel",
+      "source": "./agents-panel",
+      "description": "แผงด้านข้างแสดงรายการ agent ของโปรเจกต์ ของผู้ใช้ และของปลั๊กอิน พร้อมปุ่มเรียกใช้",
+      "version": "0.1.0",
+      "license": "MIT",
+      "category": "development",
+      "keywords": ["agents", "subagents", "panel"]
+    }
+  ]
+}
