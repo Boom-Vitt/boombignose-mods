@@ -1,6 +1,6 @@
 {
   "name": "pdpa-thai",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Helps reduce personal data sent to Claude: redacts detected Thai and international personal data before sending and masks it on screen. Detection runs locally and the mod makes no network calls of its own; the redacted conversation is still sent to your configured model provider (Anthropic by default). Best effort, not legal advice.",
   "author": {
     "name": "Boom-Vitt",

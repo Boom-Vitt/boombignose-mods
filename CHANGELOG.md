@@ -5,6 +5,19 @@ Based on Keep a Changelog, with date headings and per-mod headings; each mod is 
 
 ## Unreleased
 
+### pdpa-thai 0.3.0
+
+- **เพิ่ม** `/pdpa-blur record` (โหมดบันทึกหน้าจอ) สำหรับการบันทึกวิดีโอหน้าจอและการแชร์หน้าจอ การพรางยังเปิดอยู่และการวางเมาส์จะไม่แสดงค่าจริง โหมดนี้พรางเฉพาะค่าที่ตรวจพบในข้อความของผู้ใช้และของ Claude และไม่ครอบคลุมข้อมูลที่กฎตรวจไม่พบ ข้อความในช่องพรอมต์ก่อนกดส่ง การเรียกเครื่องมือ ผลลัพธ์ของเครื่องมือหรือคำสั่ง ข้อความต้นฉบับที่แสดงอยู่ที่อื่น และการเลือกหรือคัดลอกข้อความ ดูหัวข้อ "การบันทึกหรือแชร์หน้าจอ" ใน README
+- **เพิ่ม** `/pdpa-blur on` และ `/pdpa-blur off` ส่วน `/pdpa-blur` โดยไม่ระบุอาร์กิวเมนต์ยังสลับสถานะเหมือนเดิม (เปิดหากปิดอยู่ ปิดหากเปิดอยู่หรืออยู่ในโหมดบันทึกหน้าจอ)
+- **เปลี่ยน** อาร์กิวเมนต์อื่นของ `/pdpa-blur` จะไม่เปลี่ยนการตั้งค่าใด และแสดงบรรทัดวิธีใช้ (usage) ก่อนหน้านี้อาร์กิวเมนต์ถูกละเว้นและคำสั่งสลับสถานะทุกครั้ง
+- **เพิ่ม** แถบสถานะแสดง ` · REC` ต่อท้าย `PDPA: <โหมด>` ในโหมดบันทึกหน้าจอ เช่น `PDPA: redact · REC`
+- **บันทึกเพิ่มเติม** (อยู่ในโค้ดตั้งแต่ 0.2.0 แต่ยังไม่ได้ระบุไว้ในบันทึกของ 0.2.0) กฎค่าหลังป้ายกำกับ (`SENSITIVE`, `ADDRESS`, `NAME`) ถูกแก้ไม่ให้ใช้เวลาแบบกำลังสอง (quadratic time) กับข้อความบางรูปแบบ และทำงานในเวลาเชิงเส้น ทั้งนี้ค่าหลังป้ายกำกับที่ขึ้นต้นด้วย `[` หรือ `{` (อาร์เรย์หรืออ็อบเจกต์ JSON) จะไม่ตรงกับกฎกลุ่มนี้
+- **Added** `/pdpa-blur record` (recording mode) for screen recording and screen sharing: the mask stays on and hovering no longer reveals anything. It masks detected values only in your messages and Claude's messages, and does not cover data the rules do not detect, the prompt box before you send, tool calls, tool or command output, the original text shown anywhere else, or selecting and copying text; see "Recording or sharing your screen" in the README.
+- **Added** `/pdpa-blur on` and `/pdpa-blur off`. `/pdpa-blur` with no argument still toggles (on if it was off, off if it was on or recording).
+- **Changed** any other argument to `/pdpa-blur` now changes nothing and prints a usage line. Before, arguments were ignored and every run toggled the mask.
+- **Added** the status line appends ` · REC` to `PDPA: <mode>` in recording mode, for example `PDPA: redact · REC`.
+- **Noted** (in the code since 0.2.0, but missing from the 0.2.0 notes) the labelled-value rules (`SENSITIVE`, `ADDRESS`, `NAME`) were fixed so that certain inputs no longer take quadratic time; they now scan in linear time. A labelled value that opens with `[` or `{` (a JSON array or object) is not matched by these rules.
+
 ### เอกสาร การดูแลโครงการ และ CI / Docs, governance and CI
 
 - **เพิ่ม** README ภาษาไทย (`README.md`) และภาษาอังกฤษ (`README.en.md`) ครอบคลุมการติดตั้ง มอดในชุดนี้ ข้อจำกัด และวิธีตรวจสอบโค้ดด้วยตนเอง

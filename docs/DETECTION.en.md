@@ -2,7 +2,7 @@
 
 [ไทย](DETECTION.md) · **English**
 
-This page describes, rule by rule, what the `pdpa-thai` mod (version 0.2.0) looks for, what it rewrites before Claude reads it, and where it falls short. It is written from the code: [`pdpa-thai/hooks/detect.ts`](../pdpa-thai/hooks/detect.ts) holds the rules and [`pdpa-thai/hooks/register.tsx`](../pdpa-thai/hooks/register.tsx) holds the hooks. If this page and the code disagree, the code is what runs and this page has a bug: please [open an issue](https://github.com/Boom-Vitt/claude-mods-boombignose/issues/new/choose).
+This page describes, rule by rule, what the `pdpa-thai` mod (version 0.3.0) looks for, what it rewrites before Claude reads it, and where it falls short. It is written from the code: [`pdpa-thai/hooks/detect.ts`](../pdpa-thai/hooks/detect.ts) holds the rules and [`pdpa-thai/hooks/register.tsx`](../pdpa-thai/hooks/register.tsx) holds the hooks. If this page and the code disagree, the code is what runs and this page has a bug: please [open an issue](https://github.com/Boom-Vitt/claude-mods-boombignose/issues/new/choose).
 
 > [!IMPORTANT]
 > pdpa-thai is an unofficial community project by an individual maintainer. It is not affiliated with, endorsed by or certified by Anthropic, the Personal Data Protection Committee Office (PDPC), the Electronic Transactions Development Agency (ETDA), the Digital Government Development Agency (DGA), the Ministry of Digital Economy and Society (MDES) or any Thai government body. It is designed to help reduce how much personal data you send to Claude. Using it does not make your use of Claude comply with Thailand's [Personal Data Protection Act B.E. 2562 (2019)](https://www.pdpc.or.th/wp-content/uploads/2023/12/1_Personal-Data-Protection-2562.pdf), the PDPA, and does not replace any of your obligations under it, and this page is not legal advice. For your obligations, ask a qualified lawyer or your organisation's data protection officer; for an official interpretation, ask the [PDPC](https://www.pdpc.or.th/) (legal questions: <https://consult.pdpc.or.th/>, checked 2026-10-04). The law side is covered in [PDPA.en.md](PDPA.en.md).
@@ -161,7 +161,7 @@ These are the same limits as in the [README](../README.en.md#limits), in the sam
 16. Hooks of other plugins that run before this mod's may see the original text.
 17. A tool result or other conversation message can appear in its original form, just before it is redacted, on your screen or wherever the session is shown (Remote Control, which is relayed through Anthropic's service to claude.ai or the Claude app, or an SDK stream). *If you stream the session to an SDK client or use Remote Control, an original value can reach that client.*
 18. The guard rewrites only what Claude Code sends to the model. Other channels are separate, are not covered and may receive original values: Remote Control (relayed through Anthropic's service to claude.ai or the Claude app), command hooks in your settings, a telemetry collector your organisation configured, and reports you send to Anthropic.
-19. The on-screen mask is visual only: copying, selecting, screen readers, terminal search, and terminal recordings or logs (for example tmux capture or asciinema) still get the real text, and a screen recording shows it whenever the pointer hovers over it. Terminals that raise text contrast automatically (for example VS Code's integrated terminal, with its minimum contrast ratio setting on by default) may draw the masked text readable. The mask works only in the terminal and the desktop app, and text longer than 100,000 characters is not masked. *See [`/pdpa-blur` is not the guard](#pdpa-blur-is-not-the-guard).*
+19. The on-screen mask is visual only: copying, selecting, screen readers, terminal search, and terminal recordings or logs (for example tmux capture or asciinema) still get the real text, and a screen recording shows it whenever the pointer hovers over it unless recording mode (`/pdpa-blur record`) is on. Recording mode does not cover the prompt box before you send, tool or command output, or the original text shown anywhere else. Terminals that raise text contrast automatically (for example VS Code's integrated terminal, with its minimum contrast ratio setting on by default) may draw the masked text readable. The mask works only in the terminal and the desktop app, and text longer than 100,000 characters is not masked. *See [`/pdpa-blur` is not the guard](#pdpa-blur-is-not-the-guard).*
 20. The tool-call refusal catches only this session's placeholders written exactly as issued, and does nothing while the guard is `off`. *A placeholder retyped without its suffix, or one from another session, is not refused; after a restart or `claude --resume` the session gets a new suffix.*
 21. A notice counts only what the rules matched. No notice does not mean that no personal data was sent, and a notice does not mean that the text is now clean.
 22. Claude sees only placeholders, so it cannot act on the real value, and redaction cannot be undone: turning the guard off does not bring back values already redacted. When a task needs the real value, run `/pdpa-guard off`, send the value again, and run `/pdpa-guard redact` when the task is done. While the guard is off, tool calls that contain earlier placeholders are not refused, so check what Claude writes.
@@ -210,19 +210,46 @@ How to cope:
 | `block` | A typed prompt that contains detected data is not sent; you see a notice and edit it. Tool results, attachments and context blocks are still redacted, and the tool-call check still applies. | When you would rather fix the prompt yourself than have it changed, for example in a demo or a training session, or on a team that wants people to stop pasting personal data out of habit. |
 | `off` | Nothing is scanned or replaced, and tool calls are not checked. The blur, if on, still works. | When the task needs the real value, or false positives get in the way. Switch back afterwards. |
 
-Run `/pdpa-guard` with no argument to see the current mode. An argument other than `redact`, `block` or `off` changes nothing and only shows the current mode. The status line shows `PDPA: <mode>`; if it shows no `PDPA:` entry at all, the mod did not load and nothing is redacted (see known limit 14). A short notice tells you how many items were replaced in a prompt or a stored row, or why a prompt was blocked. Replacements in attachments and context blocks (for example in `CLAUDE.md`) show no notice. A notice counts only what the rules matched, so no notice does not mean nothing personal was sent.
+Run `/pdpa-guard` with no argument to see the current mode. An argument other than `redact`, `block` or `off` changes nothing and only shows the current mode. The status line shows `PDPA: <mode>`, followed by ` · REC` in recording mode; if it shows no `PDPA:` entry at all, the mod did not load and nothing is redacted (see known limit 14). A short notice tells you how many items were replaced in a prompt or a stored row, or why a prompt was blocked. Replacements in attachments and context blocks (for example in `CLAUDE.md`) show no notice. A notice counts only what the rules matched, so no notice does not mean nothing personal was sent.
 
-The mode and the mask setting are not saved to disk and start as `redact` with the mask on whenever Claude Code starts; whether `/clear` keeps the current mode has not been verified by the maintainer (run `/pdpa-guard` with no argument, or look at the status line, to see the current mode). If you rely on `block`, set it again after every start or resume.
+The mode and the mask settings are not saved to disk and start as `redact` with the mask on and recording mode off whenever Claude Code starts; whether `/clear` keeps the current mode has not been verified by the maintainer (run `/pdpa-guard` with no argument, or look at the status line, to see the current mode). If you rely on `block`, set it again after every start or resume.
 
 ## `/pdpa-blur` is not the guard
 
-`/pdpa-blur` turns an on-screen mask on or off. Each run toggles the mask and ignores any argument, so `/pdpa-blur off` turns it back on if it was already off. It is on by default.
+`/pdpa-blur` controls an on-screen mask. It is on by default.
+
+| Command | Effect |
+|---|---|
+| `/pdpa-blur` | Toggles: on if the mask was off, off if it was on or in recording mode |
+| `/pdpa-blur on` | Mask on; hovering over a block reveals it |
+| `/pdpa-blur off` | Mask off |
+| `/pdpa-blur record` | Recording mode: mask on, and hovering reveals nothing |
+
+Any other argument changes nothing and prints a usage line.
 
 - It uses the same rules as the guard, but only changes how your messages and Claude's messages are drawn. It does not change what is sent, and it works the same in every guard mode, including `off`.
-- The real text is drawn grey on grey, so the layout does not shift. Hovering over a block reveals it; selecting and copying yields the real text.
+- The real text is drawn grey on grey, so the layout does not shift. Hovering over a block reveals it, except in recording mode; selecting and copying yields the real text in every mode.
 - It works on the terminal and desktop surfaces only. Tool output is not blurred, and messages longer than 100,000 characters are drawn normally.
-- Terminals that raise text contrast automatically (for example VS Code's integrated terminal, with its minimum contrast ratio setting on by default) may draw the masked text readable. A screen share or screen recording shows the value whenever the pointer hovers over it, and terminal logs and text-level recordings (for example tmux capture or asciinema) keep the real text.
-- Use it to reduce shoulder-surfing. It is not a security control: before you share your screen or record a session, check in that terminal that the masked text is really unreadable, or keep personal data off the screen.
+- Terminals that raise text contrast automatically (for example VS Code's integrated terminal, with its minimum contrast ratio setting on by default) may draw the masked text readable. Outside recording mode, a screen share or screen recording shows the value whenever the pointer hovers over it. Terminal logs and text-level recordings (for example tmux capture or asciinema) keep the real text in every mode.
+- Use it to reduce shoulder-surfing. It is not a security control.
+
+### Recording mode
+
+`/pdpa-blur record` is for screen recording and screen sharing. The mask stays on, and hovering does not reveal a masked value while recording mode is on. The status line then reads `PDPA: <mode> · REC` (for example `PDPA: redact · REC`). Like the rest of the mask, it applies on the terminal and desktop surfaces only and is not saved to disk; Claude Code starts with the mask on and recording mode off. `/pdpa-blur on` or `/pdpa-blur off` leaves it. Stop recording before you leave recording mode: `/pdpa-blur on` brings hover reveal back, and `/pdpa-blur` with no argument turns the mask off. Claude Code also starts again with recording mode off, so check the status line after any restart or resume.
+
+Recording mode masks detected values only in your messages and Claude's messages. Everything else Claude Code draws, including tool calls and their output, file diffs, thinking, notices and other panes, is shown as is.
+
+Recording mode does not cover:
+
+- personal data the rules do not detect, such as a name without a label or title (see [Known limits](#known-limits)): it is shown as written and is not masked;
+- text you type in the prompt box before you send it (the guard replaces it only on submit);
+- tool calls, tool output and command output on screen;
+- the original text if it is on screen for any other reason, for example a file open in another window;
+- selecting text, which may make the masked text readable on screen; copying yields the real text.
+
+In `redact` mode your own sent prompts already show placeholders, so the mask matters mainly for Claude's replies and for text sent while the guard was `off`.
+
+Before you record or share your screen: set the guard to `redact` or `block`, run `/pdpa-blur record`, and check the recording before you share it. It is a visual mask, not a guarantee.
 
 ## Performance
 

@@ -9,6 +9,8 @@ import { findSensitive, issuedTag, newTags, plan, redact, scrub } from './detect
 // See README Limits for what this does not cover.
 const guardMode = atom({ plugin: 'pdpa-thai', key: 'guardMode' } as const, 'redact')
 const isBlurOn = atom({ plugin: 'pdpa-thai', key: 'isBlurOn' } as const, true)
+// recording mode: the mask stays on and hover no longer reveals it
+const isRecording = atom({ plugin: 'pdpa-thai', key: 'isRecording' } as const, false)
 const tagSuffix = atom({ plugin: 'pdpa-thai', key: 'tagSuffix' } as const, '')
 
 const MODES = ['redact', 'block', 'off'] as const
@@ -35,8 +37,12 @@ async function suffix($: EngineInterface) {
   return read($, tagSuffix)
 }
 
+async function showStatus($: EngineInterface) {
+  $.ui.status(`PDPA: ${await read($, guardMode)}${(await read($, isRecording)) ? ' · REC' : ''}`)
+}
+
 // the tree for a row holding personal data, or null to leave the engine's own drawing
-function draw($: EngineInterface, e: Parameters<EngineInterface['ui']['resolve']>[0], text: string, id: string) {
+function draw($: EngineInterface, e: Parameters<EngineInterface['ui']['resolve']>[0], text: string, id: string, isLocked: boolean) {
   if (text.length > DISPLAY_MAX) return null
   const spans = findSensitive(text)
   if (spans.length === 0) return null
@@ -55,7 +61,7 @@ function draw($: EngineInterface, e: Parameters<EngineInterface['ui']['resolve']
             {chunk.pieces.length === 0 && <Text> </Text>}
             {chunk.pieces.map((p, j) =>
               p.hidden ? (
-                <Text key={`p${j}`} {...BLUR} hover={{ scope: `${scope}:${i}-${j}`, ...REVEAL }}>
+                <Text key={`p${j}`} {...BLUR} {...(isLocked ? {} : { hover: { scope: `${scope}:${i}-${j}`, ...REVEAL } })}>
                   {p.text}
                 </Text>
               ) : (
@@ -77,9 +83,9 @@ export const register: Register = on => {
     })
     await $.command.register({
       name: 'pdpa-blur',
-      description: 'Turn PDPA personal-data blurring in the transcript on or off',
+      description: 'PDPA blur in the transcript: on | off | record (record = no hover reveal, for screen recording)',
     })
-    $.ui.status(`PDPA: ${await read($, guardMode)}`)
+    await showStatus($)
     return next(e)
   })
 
@@ -88,7 +94,7 @@ export const register: Register = on => {
     const next = MODES.find(m => m === arg)
     if (next) {
       await update($, guardMode, () => next)
-      $.ui.status(`PDPA: ${next}`)
+      await showStatus($)
       return { text: `โหมดป้องกัน PDPA → ${HELP[next]}` }
     }
     const mode = (await read($, guardMode)) as Mode
@@ -145,23 +151,38 @@ export const register: Register = on => {
       : next(e)
   })
 
-  on('command.run', { command: 'pdpa-blur' }, async $ => {
-    const wasOn = await read($, isBlurOn)
-    await update($, isBlurOn, () => !wasOn)
-    return { text: wasOn ? 'PDPA blur off.' : 'PDPA blur on. Hover a grey block to reveal it.' }
+  on('command.run', { command: 'pdpa-blur' }, async ($, e) => {
+    const arg = e.args.trim().toLowerCase()
+    const wasShown = (await read($, isBlurOn)) || (await read($, isRecording))
+    const want = arg === 'on' || arg === 'off' || arg === 'record' ? arg : arg === '' ? (wasShown ? 'off' : 'on') : null
+    if (want === null) return { text: 'Usage: /pdpa-blur [on | off | record]  (no argument toggles on/off)' }
+    await update($, isBlurOn, () => want !== 'off')
+    await update($, isRecording, () => want === 'record')
+    await showStatus($)
+    return {
+      text: {
+        on: 'PDPA blur on. Hover a grey block to reveal it.',
+        off: 'PDPA blur off.',
+        record:
+          'PDPA blur: recording mode. Matches in messages stay masked and hover does not reveal them. ' +
+          'Not covered: the prompt box while you type, tool output, command output. Turn off with /pdpa-blur off.',
+      }[want],
+    }
   })
 
   // read the toggle first so every row subscribes and redraws when it flips; no hover exists on
   // the other surfaces, and a block that cannot be revealed is worse than none
   on('ui.render', { component: 'AssistantMessage' }, async ($, e, next) => {
     const isActive = await read($, isBlurOn)
+    const isLocked = await read($, isRecording)
     if (!isActive || (e.surface !== 'terminal' && e.surface !== 'desktop')) return next(e)
-    return draw($, e, e.props.text, e.requestId) ?? next(e)
+    return draw($, e, e.props.text, e.requestId, isLocked) ?? next(e)
   })
 
   on('ui.render', { component: 'UserMessage' }, async ($, e, next) => {
     const isActive = await read($, isBlurOn)
+    const isLocked = await read($, isRecording)
     if (!isActive || (e.surface !== 'terminal' && e.surface !== 'desktop')) return next(e)
-    return draw($, e, e.props.text, e.requestId) ?? next(e)
+    return draw($, e, e.props.text, e.requestId, isLocked) ?? next(e)
   })
 }

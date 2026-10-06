@@ -55,11 +55,11 @@ claude plugin uninstall pdpa-thai@claude-mods-boombignose
 
 | Mod | Version | Command | What it does |
 |---|---|---|---|
-| `pdpa-thai` | 0.2.0 | `/pdpa-guard [redact\|block\|off]`, `/pdpa-blur` | Redacts personal data it detects before it is sent to Claude, and masks it on screen (hover to reveal) |
+| `pdpa-thai` | 0.3.0 | `/pdpa-guard [redact\|block\|off]`, `/pdpa-blur [on\|off\|record]` | Redacts personal data it detects before it is sent to Claude, and masks it on screen (hover to reveal; in recording mode hovering does not reveal it) |
 | `context-bar` | 0.4.0 | `/context-bar` | A bar above the prompt showing context window use by category and the time left on the prompt cache |
 | `agents-panel` | 0.1.0 | `/agents-panel` | A side pane listing project, user and plugin agents, each with a run button |
 
-`/context-bar`, `/agents-panel` and `/pdpa-blur` toggle on and off. `/pdpa-guard` takes a mode name.
+`/context-bar` and `/agents-panel` toggle on and off. `/pdpa-blur` toggles too, or takes `on`, `off` or `record`. `/pdpa-guard` takes a mode name.
 
 - `context-bar` counts down assuming a 5-minute prompt-cache lifetime (a constant in the code).
 - The `▶ run` button in `agents-panel` starts that subagent with the fixed prompt `Run the <name> agent on the current project.` The subagent runs like any other agent: its conversation goes to your configured model provider (Anthropic by default), and it can act on the project under your usual permissions.
@@ -77,7 +77,7 @@ Per-mod release notes are in [CHANGELOG.md](CHANGELOG.md).
 
    Only text blocks and the text inside tool results are rewritten. Other blocks, such as images and documents, are sent unchanged.
 2. **Tool-call refusal.** While the guard is on (`redact` or `block`), a tool call from Claude that contains a placeholder issued in this session, written exactly as issued, is refused, and Claude is told to ask you for the real value. This helps keep placeholders out of real files and commands. It does not catch a placeholder Claude has altered or one from an earlier session, and it does nothing while the guard is `off`.
-3. **On-screen mask (hover blur).** Detected data that is still on screen in your messages and Claude's messages is drawn as a grey block; hover to reveal it. In `redact` mode your prompt is already shown with placeholders, the conversation keeps only the redacted prompt, and the mod keeps no copy of the original, so the mask mainly matters for Claude's replies and for text sent while the guard is `off`. The mask is on by default and works in the terminal and the desktop app only.
+3. **On-screen mask (hover blur).** Detected data that is still on screen in your messages and Claude's messages is drawn as a grey block; hover to reveal it. In `redact` mode your prompt is already shown with placeholders, the conversation keeps only the redacted prompt, and the mod keeps no copy of the original, so the mask mainly matters for Claude's replies and for text sent while the guard is `off`. The mask is on by default and works in the terminal and the desktop app only. For screen recording or screen sharing, `/pdpa-blur record` keeps the mask on and stops hover from revealing anything; see [Recording or sharing your screen](#recording-or-sharing-your-screen).
 
 ### Modes
 
@@ -87,7 +87,7 @@ Per-mod release notes are in [CHANGELOG.md](CHANGELOG.md).
 | `block` | Refuses to send a prompt that contains detected personal data; rewrite it without the personal data and send again. Tool results, attachments and context are still redacted as in `redact` |
 | `off` | Turns off both redaction and the tool-call refusal (the on-screen mask is controlled separately by `/pdpa-blur`) |
 
-The mode and the mask setting are not saved to disk and start as `redact` with the mask on whenever Claude Code starts; whether `/clear` keeps the current mode has not been verified by the maintainer (run `/pdpa-guard` with no argument, or look at the status line, to see the current mode).
+The mode and the mask settings are not saved to disk and start as `redact` with the mask on and recording mode off whenever Claude Code starts; whether `/clear` keeps the current mode has not been verified by the maintainer (run `/pdpa-guard` with no argument, or look at the status line, to see the current mode).
 
 ### Commands
 
@@ -96,12 +96,41 @@ The mode and the mask setting are not saved to disk and start as `redact` with t
 /pdpa-guard redact    redact before sending (default)
 /pdpa-guard block     refuse prompts that contain detected personal data
 /pdpa-guard off       turn the guard off
-/pdpa-blur            toggle the on-screen mask (arguments are ignored)
+/pdpa-blur            toggle the on-screen mask (on if it is off; off if it is on or recording)
+/pdpa-blur on         mask on, hover to reveal
+/pdpa-blur off        mask off
+/pdpa-blur record     recording mode: mask on, hover does not reveal
 ```
 
-The status line shows `PDPA: <mode>`. When the mod redacts a prompt or a message the conversation keeps, or holds back a prompt, a toast reports how many items it found. Redaction of `CLAUDE.md`, other context blocks and attachments such as files mentioned with `@` is silent. A notice counts only what the rules matched: no notice does not mean that no personal data was sent, and a notice does not mean that the text is now clean.
+Any other argument to `/pdpa-blur` changes nothing and prints a usage line.
+
+The status line shows `PDPA: <mode>`, with ` · REC` added in recording mode (for example `PDPA: redact · REC`). When the mod redacts a prompt or a message the conversation keeps, or holds back a prompt, a toast reports how many items it found. Redaction of `CLAUDE.md`, other context blocks and attachments such as files mentioned with `@` is silent. A notice counts only what the rules matched: no notice does not mean that no personal data was sent, and a notice does not mean that the text is now clean.
 
 **Check that it is running.** After Claude Code starts, the status line should show `PDPA: redact` or `PDPA: block`. If it does not, the mod did not load and nothing is redacted; run `claude --debug` to see why. Headless runs (such as `claude -p`) show no status line, so check the debug output before you rely on the guard there.
+
+### Recording or sharing your screen
+
+`/pdpa-blur record` turns on recording mode, for screen recording and screen sharing. The mask stays on, and hovering does not reveal a masked value while recording mode is on. Like the rest of the mask, it works only in the terminal and the desktop app, it is not saved to disk, and Claude Code starts with the mask on and recording mode off. Run `/pdpa-blur on` or `/pdpa-blur off` to leave it. Stop recording before you leave recording mode: `/pdpa-blur on` brings hover reveal back, and `/pdpa-blur` with no argument turns the mask off. Claude Code also starts again with recording mode off, so check the status line after any restart or resume.
+
+Recording mode masks detected values only in your messages and Claude's messages. Everything else Claude Code draws, including tool calls and their output, file diffs, thinking, notices and other panes, is shown as is.
+
+Recording mode does **not** cover:
+
+- personal data the rules do not detect, such as a name without a label or title (see [Limits](#limits)): it is shown as written and is not masked;
+- text you type in the prompt box before you send it (the guard replaces it only when you submit);
+- tool calls, tool output and command output on screen;
+- the original text if it is on screen for any other reason, such as a file open in another window;
+- selecting text, which may make the masked text readable on screen; copying yields the real text.
+
+In `redact` mode your own sent prompts already show placeholders, so the mask matters mainly for Claude's replies and for text sent while the guard was `off`. The other mask limits under [Limits](#limits) still apply.
+
+Before you record or share:
+
+1. Set the guard to `redact` or `block` (`/pdpa-guard redact`).
+2. Run `/pdpa-blur record` and check that the status line ends in `· REC`.
+3. Check the recording before you share it.
+
+It is a visual mask, not a guarantee.
 
 ### Before and after
 
@@ -178,7 +207,7 @@ The sensitive categories follow section 26 of the Personal Data Protection Act B
 - Hooks of other plugins that run before this mod's may see the original text.
 - A tool result or other conversation message can appear in its original form, just before it is redacted, on your screen or wherever the session is shown (Remote Control, which is relayed through Anthropic's service to claude.ai or the Claude app, or an SDK stream).
 - The guard rewrites only what Claude Code sends to the model. Other channels are separate, are not covered and may receive original values: Remote Control (relayed through Anthropic's service to claude.ai or the Claude app), command hooks in your settings, a telemetry collector your organisation configured, and reports you send to Anthropic.
-- The on-screen mask is visual only: copying, selecting, screen readers, terminal search, and terminal recordings or logs (for example tmux capture or asciinema) still get the real text, and a screen recording shows it whenever the pointer hovers over it. Terminals that raise text contrast automatically (for example VS Code's integrated terminal, with its minimum contrast ratio setting on by default) may draw the masked text readable. The mask works only in the terminal and the desktop app, and text longer than 100,000 characters is not masked.
+- The on-screen mask is visual only: copying, selecting, screen readers, terminal search, and terminal recordings or logs (for example tmux capture or asciinema) still get the real text, and a screen recording shows it whenever the pointer hovers over it unless recording mode (`/pdpa-blur record`) is on. Recording mode does not cover the prompt box before you send, tool or command output, or the original text shown anywhere else (see [Recording or sharing your screen](#recording-or-sharing-your-screen)). Terminals that raise text contrast automatically (for example VS Code's integrated terminal, with its minimum contrast ratio setting on by default) may draw the masked text readable. The mask works only in the terminal and the desktop app, and text longer than 100,000 characters is not masked.
 - The tool-call refusal catches only this session's placeholders written exactly as issued, and does nothing while the guard is `off`.
 - A notice counts only what the rules matched. No notice does not mean that no personal data was sent, and a notice does not mean that the text is now clean.
 - Claude sees only placeholders, so it cannot act on the real value, and redaction cannot be undone: turning the guard off does not bring back values already redacted. When a task needs the real value, run `/pdpa-guard off`, send the value again, and run `/pdpa-guard redact` when the task is done. While the guard is off, tool calls that contain earlier placeholders are not refused, so check what Claude writes.
@@ -206,7 +235,7 @@ cd claude-mods-boombignose
 ```
 
 1. Read `pdpa-thai/hooks/detect.ts` (about 280 lines). The `RULES` array is every detection rule; `redact()` does the replacement.
-2. Read `pdpa-thai/hooks/register.tsx` (about 170 lines). Every point where the mod hooks into Claude Code is an `on(...)` call: `session.start`, `prompt.submit`, `session.append`, `prompt.attachment`, `prompt.context`, `tool.call`, `ui.render` and `command.run`.
+2. Read `pdpa-thai/hooks/register.tsx` (about 190 lines). Every point where the mod hooks into Claude Code is an `on(...)` call: `session.start`, `prompt.submit`, `session.append`, `prompt.attachment`, `prompt.context`, `tool.call`, `ui.render` and `command.run`.
 3. Run the main CI checks. The first command should print nothing. In the output of `claude plugin validate pdpa-thai`, the `calls:` line should list only `$.state`, `$.ui`, `$.clock` and `$.command` calls.
 
 ```bash
@@ -228,7 +257,7 @@ Yes, or your configured model provider does. Claude Code still sends the convers
 
 **How do I turn it off?**
 
-`/pdpa-guard off` turns off redaction and the tool-call refusal. The mode and the mask setting are not saved to disk and start as `redact` with the mask on whenever Claude Code starts; whether `/clear` keeps the current mode has not been verified by the maintainer (run `/pdpa-guard` with no argument, or look at the status line, to see the current mode). `/pdpa-blur` toggles the on-screen mask. To turn off the whole mod, run `claude plugin disable pdpa-thai@claude-mods-boombignose`.
+`/pdpa-guard off` turns off redaction and the tool-call refusal. The mode and the mask settings are not saved to disk and start as `redact` with the mask on and recording mode off whenever Claude Code starts; whether `/clear` keeps the current mode has not been verified by the maintainer (run `/pdpa-guard` with no argument, or look at the status line, to see the current mode). `/pdpa-blur off` turns the on-screen mask off, and `/pdpa-blur` with no argument toggles it. To turn off the whole mod, run `claude plugin disable pdpa-thai@claude-mods-boombignose`.
 
 **Harmless text was redacted (a false positive). What should I do?**
 

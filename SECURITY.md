@@ -14,7 +14,7 @@ claude-mods-boombignose เป็นโครงการชุมชนที�
 
 | มอด | เวอร์ชันที่ยังได้รับการแก้ไข | เวอร์ชันอื่น |
 | --- | --- | --- |
-| `pdpa-thai` | 0.2.x | ไม่ได้รับการแก้ไข |
+| `pdpa-thai` | 0.3.x | ไม่ได้รับการแก้ไข |
 | `context-bar` | 0.4.x | ไม่ได้รับการแก้ไข |
 | `agents-panel` | 0.1.x | ไม่ได้รับการแก้ไข |
 | `pdpa-blur` (รวมเข้ากับ `pdpa-thai` ตั้งแต่เวอร์ชัน 0.2.0) | ไม่มี | ให้เปลี่ยนไปใช้ `pdpa-thai` |
@@ -105,7 +105,7 @@ Security fixes ship in the latest release of each mod only. Nothing is backporte
 
 | Mod | Receives fixes | Other versions |
 | --- | --- | --- |
-| `pdpa-thai` | 0.2.x | not supported |
+| `pdpa-thai` | 0.3.x | not supported |
 | `context-bar` | 0.4.x | not supported |
 | `agents-panel` | 0.1.x | not supported |
 | `pdpa-blur` (merged into `pdpa-thai` in 0.2.0) | none | move to `pdpa-thai` |
