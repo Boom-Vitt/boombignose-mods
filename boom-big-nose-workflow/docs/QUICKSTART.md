@@ -7,8 +7,8 @@
 ## 1. ติดตั้งและตรวจ
 
 ```bash
-claude plugin marketplace add Boom-Vitt/claude-mods-boombignose
-claude plugin install boom-big-nose-workflow@claude-mods-boombignose
+claude plugin marketplace add Boom-Vitt/boombignose-mods
+claude plugin install boom-big-nose-workflow@boombignose-mods
 ```
 
 รีสตาร์ท Claude Code แล้วใน repo ของคุณพิมพ์ `/orca-doctor` ทุกบรรทัด WARN/FAIL จะมี `fix:` บอกวิธีแก้ ต้องมี git 2.38+ และ node

@@ -6,7 +6,7 @@
 
 ## ภาษาไทย
 
-ขอบคุณที่สนใจร่วมพัฒนา claude-mods-boombignose โครงการนี้เป็นโครงการชุมชนที่ไม่เป็นทางการ ดูแลโดยบุคคลคนเดียว ไม่มีความเกี่ยวข้องกับ Anthropic, สำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคล (PDPC), สำนักงานพัฒนาธุรกรรมทางอิเล็กทรอนิกส์ (ETDA), สำนักงานพัฒนารัฐบาลดิจิทัล (DGA), กระทรวงดิจิทัลเพื่อเศรษฐกิจและสังคม (MDES) หรือหน่วยงานของรัฐใด ๆ ของไทย และไม่ได้รับการสนับสนุนหรือการรับรองจากองค์กรหรือหน่วยงานเหล่านี้ ทุกคนที่มีส่วนร่วมในโครงการต้องปฏิบัติตาม[จรรยาบรรณ](CODE_OF_CONDUCT.md) หากพบช่องโหว่ ให้รายงานตาม [SECURITY.md](SECURITY.md) โดยห้ามรายงานผ่าน issue สาธารณะ
+ขอบคุณที่สนใจร่วมพัฒนา boombignose-mods โครงการนี้เป็นโครงการชุมชนที่ไม่เป็นทางการ ดูแลโดยบุคคลคนเดียว ไม่มีความเกี่ยวข้องกับ Anthropic, สำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคล (PDPC), สำนักงานพัฒนาธุรกรรมทางอิเล็กทรอนิกส์ (ETDA), สำนักงานพัฒนารัฐบาลดิจิทัล (DGA), กระทรวงดิจิทัลเพื่อเศรษฐกิจและสังคม (MDES) หรือหน่วยงานของรัฐใด ๆ ของไทย และไม่ได้รับการสนับสนุนหรือการรับรองจากองค์กรหรือหน่วยงานเหล่านี้ ทุกคนที่มีส่วนร่วมในโครงการต้องปฏิบัติตาม[จรรยาบรรณ](CODE_OF_CONDUCT.md) หากพบช่องโหว่ ให้รายงานตาม [SECURITY.md](SECURITY.md) โดยห้ามรายงานผ่าน issue สาธารณะ
 
 ### กฎเหล็ก: ห้ามใช้ข้อมูลส่วนบุคคลจริง
 
@@ -31,8 +31,8 @@
 ต้องมี Claude Code เวอร์ชันที่รองรับปลั๊กอินแบบ hook module (ทดสอบแล้วกับเวอร์ชัน 2.1.289 เท่านั้น) แต่ละมอดคือปลั๊กอินที่ไฟล์ `hooks/hooks.json` ระบุโมดูล TypeScript (`hooks/register.tsx`) ซึ่งผูกกับเหตุการณ์ (event) ของ Claude Code
 
 ```bash
-git clone https://github.com/Boom-Vitt/claude-mods-boombignose.git
-cd claude-mods-boombignose
+git clone https://github.com/Boom-Vitt/boombignose-mods.git
+cd boombignose-mods
 
 # ตรวจ manifest ของ marketplace และของมอด
 claude plugin validate .
@@ -140,7 +140,7 @@ CI ใช้ Claude Code เวอร์ชันล่าสุดเสมอ 
 
 [ไทย](#th) · **English**
 
-Thanks for helping. claude-mods-boombignose is an unofficial community project maintained by one individual. It is not affiliated with, endorsed by or certified by Anthropic, the Personal Data Protection Committee Office (PDPC), the Electronic Transactions Development Agency (ETDA), the Digital Government Development Agency (DGA), the Ministry of Digital Economy and Society (MDES) or any Thai government body. Everyone who takes part follows the [Code of Conduct](CODE_OF_CONDUCT.md). Report vulnerabilities as described in [SECURITY.md](SECURITY.md), never in a public issue.
+Thanks for helping. boombignose-mods is an unofficial community project maintained by one individual. It is not affiliated with, endorsed by or certified by Anthropic, the Personal Data Protection Committee Office (PDPC), the Electronic Transactions Development Agency (ETDA), the Digital Government Development Agency (DGA), the Ministry of Digital Economy and Society (MDES) or any Thai government body. Everyone who takes part follows the [Code of Conduct](CODE_OF_CONDUCT.md). Report vulnerabilities as described in [SECURITY.md](SECURITY.md), never in a public issue.
 
 ### Hard rule: no real personal data
 
@@ -165,8 +165,8 @@ A new mod also needs: an entry in `.claude-plugin/marketplace.json`, its name in
 You need a Claude Code build that supports hook-module plugins (tested only with 2.1.289). Each mod is a plugin whose `hooks/hooks.json` lists a TypeScript module (`hooks/register.tsx`) that hooks Claude Code events.
 
 ```bash
-git clone https://github.com/Boom-Vitt/claude-mods-boombignose.git
-cd claude-mods-boombignose
+git clone https://github.com/Boom-Vitt/boombignose-mods.git
+cd boombignose-mods
 
 # validate the marketplace and a mod
 claude plugin validate .

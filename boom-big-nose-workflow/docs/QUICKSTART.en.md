@@ -7,8 +7,8 @@ From install to your first merged feature in about 10 minutes. Every step that c
 ## 1. Install and check
 
 ```bash
-claude plugin marketplace add Boom-Vitt/claude-mods-boombignose
-claude plugin install boom-big-nose-workflow@claude-mods-boombignose
+claude plugin marketplace add Boom-Vitt/boombignose-mods
+claude plugin install boom-big-nose-workflow@boombignose-mods
 ```
 
 Restart Claude Code, then in your repo type `/orca-doctor`. Every WARN/FAIL line comes with a `fix:` hint. You need git 2.38+ and node.

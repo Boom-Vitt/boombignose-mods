@@ -14,8 +14,8 @@
 ### ติดตั้ง
 
 ```bash
-claude plugin marketplace add Boom-Vitt/claude-mods-boombignose
-claude plugin install boom-big-nose-workflow@claude-mods-boombignose
+claude plugin marketplace add Boom-Vitt/boombignose-mods
+claude plugin install boom-big-nose-workflow@boombignose-mods
 ```
 
 รีสตาร์ท Claude Code แล้วรัน `/orca-setup` หรือ `/orca-doctor` เริ่มใช้งานทีละขั้น: [docs/QUICKSTART.md](docs/QUICKSTART.md)
@@ -108,8 +108,8 @@ Orca for Claude Code: role agents (plan / implement / integrate / review), one g
 ### Install
 
 ```bash
-claude plugin marketplace add Boom-Vitt/claude-mods-boombignose
-claude plugin install boom-big-nose-workflow@claude-mods-boombignose
+claude plugin marketplace add Boom-Vitt/boombignose-mods
+claude plugin install boom-big-nose-workflow@boombignose-mods
 ```
 
 Restart Claude Code, then run `/orca-setup` or `/orca-doctor`. Step by step: [docs/QUICKSTART.en.md](docs/QUICKSTART.en.md)

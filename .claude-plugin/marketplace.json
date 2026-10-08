@@ -1,6 +1,6 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "claude-mods-boombignose",
+  "name": "boombignose-mods",
   "owner": {
     "name": "Boom-Vitt",
     "url": "https://github.com/Boom-Vitt"

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Boom-Vitt/claude-mods-boombignose/boom-big-nose-workflow/orca.plan.schema.json",
+  "$id": "https://github.com/Boom-Vitt/boombignose-mods/boom-big-nose-workflow/orca.plan.schema.json",
   "title": "Orca plan (.orca/plan.json)",
   "type": "object",
   "required": ["version", "title", "status", "goal", "streams"],

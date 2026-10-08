@@ -5,10 +5,28 @@ Based on Keep a Changelog, with date headings and per-mod headings; each mod is 
 
 ## Unreleased
 
+### ชื่อ repository และ marketplace / Repository and marketplace name
+
+- **เปลี่ยน** repository ย้ายจาก `Boom-Vitt/claude-mods-boombignose` ไปเป็น `Boom-Vitt/boombignose-mods` และชื่อ marketplace เปลี่ยนจาก `claude-mods-boombignose` เป็น `boombignose-mods` คำสั่งติดตั้งจึงเป็น `<มอด>@boombignose-mods` ผู้ที่ติดตั้งไว้แล้วต้องลบ marketplace เดิม เพิ่มใหม่ แล้วติดตั้งมอดที่ใช้อีกครั้ง (ใช้คำสั่ง `install` เดียวกันกับมอดอื่น):
+
+  ```bash
+  claude plugin marketplace remove claude-mods-boombignose
+  claude plugin marketplace add Boom-Vitt/boombignose-mods
+  claude plugin install pdpa-thai@boombignose-mods
+  ```
+
+- **Changed** the repository moved from `Boom-Vitt/claude-mods-boombignose` to `Boom-Vitt/boombignose-mods`, and the marketplace name changed from `claude-mods-boombignose` to `boombignose-mods`, so mods install as `<mod>@boombignose-mods`. If you installed before, remove the old marketplace, add it again, and reinstall the mods you use (same `install` command for the other mods):
+
+  ```bash
+  claude plugin marketplace remove claude-mods-boombignose
+  claude plugin marketplace add Boom-Vitt/boombignose-mods
+  claude plugin install pdpa-thai@boombignose-mods
+  ```
+
 ### boom-big-nose-workflow 0.4.0
 
-- **เพิ่ม** มอด `boom-big-nose-workflow` (เวิร์กโฟลว์ Orca) เข้า marketplace นี้ ติดตั้งด้วย `claude plugin install boom-big-nose-workflow@claude-mods-boombignose` พร้อมแผนภาพขั้นตอน `boom-big-nose-workflow/docs/workflow-diagram.md` รายละเอียดของแต่ละเวอร์ชันอยู่ใน [boom-big-nose-workflow/CHANGELOG.md](boom-big-nose-workflow/CHANGELOG.md)
-- **Added** the `boom-big-nose-workflow` mod (the Orca workflow) to this marketplace: `claude plugin install boom-big-nose-workflow@claude-mods-boombignose`, with a workflow diagram in `boom-big-nose-workflow/docs/workflow-diagram.md`. Per-version notes are in [boom-big-nose-workflow/CHANGELOG.md](boom-big-nose-workflow/CHANGELOG.md).
+- **เพิ่ม** มอด `boom-big-nose-workflow` (เวิร์กโฟลว์ Orca) เข้า marketplace นี้ ติดตั้งด้วย `claude plugin install boom-big-nose-workflow@boombignose-mods` พร้อมแผนภาพขั้นตอน `boom-big-nose-workflow/docs/workflow-diagram.md` รายละเอียดของแต่ละเวอร์ชันอยู่ใน [boom-big-nose-workflow/CHANGELOG.md](boom-big-nose-workflow/CHANGELOG.md)
+- **Added** the `boom-big-nose-workflow` mod (the Orca workflow) to this marketplace: `claude plugin install boom-big-nose-workflow@boombignose-mods`, with a workflow diagram in `boom-big-nose-workflow/docs/workflow-diagram.md`. Per-version notes are in [boom-big-nose-workflow/CHANGELOG.md](boom-big-nose-workflow/CHANGELOG.md).
 
 ### pdpa-thai 0.3.0
 

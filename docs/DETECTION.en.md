@@ -2,7 +2,7 @@
 
 [ไทย](DETECTION.md) · **English**
 
-This page describes, rule by rule, what the `pdpa-thai` mod (version 0.3.0) looks for, what it rewrites before Claude reads it, and where it falls short. It is written from the code: [`pdpa-thai/hooks/detect.ts`](../pdpa-thai/hooks/detect.ts) holds the rules and [`pdpa-thai/hooks/register.tsx`](../pdpa-thai/hooks/register.tsx) holds the hooks. If this page and the code disagree, the code is what runs and this page has a bug: please [open an issue](https://github.com/Boom-Vitt/claude-mods-boombignose/issues/new/choose).
+This page describes, rule by rule, what the `pdpa-thai` mod (version 0.3.0) looks for, what it rewrites before Claude reads it, and where it falls short. It is written from the code: [`pdpa-thai/hooks/detect.ts`](../pdpa-thai/hooks/detect.ts) holds the rules and [`pdpa-thai/hooks/register.tsx`](../pdpa-thai/hooks/register.tsx) holds the hooks. If this page and the code disagree, the code is what runs and this page has a bug: please [open an issue](https://github.com/Boom-Vitt/boombignose-mods/issues/new/choose).
 
 > [!IMPORTANT]
 > pdpa-thai is an unofficial community project by an individual maintainer. It is not affiliated with, endorsed by or certified by Anthropic, the Personal Data Protection Committee Office (PDPC), the Electronic Transactions Development Agency (ETDA), the Digital Government Development Agency (DGA), the Ministry of Digital Economy and Society (MDES) or any Thai government body. It is designed to help reduce how much personal data you send to Claude. Using it does not make your use of Claude comply with Thailand's [Personal Data Protection Act B.E. 2562 (2019)](https://www.pdpc.or.th/wp-content/uploads/2023/12/1_Personal-Data-Protection-2562.pdf), the PDPA, and does not replace any of your obligations under it, and this page is not legal advice. For your obligations, ask a qualified lawyer or your organisation's data protection officer; for an official interpretation, ask the [PDPC](https://www.pdpc.or.th/) (legal questions: <https://consult.pdpc.or.th/>, checked 2026-10-04). The law side is covered in [PDPA.en.md](PDPA.en.md).
@@ -285,7 +285,7 @@ You need a Claude Code build that supports hook-module plugins; the mods were te
 
 ## Report a miss or a false positive
 
-Open an issue at <https://github.com/Boom-Vitt/claude-mods-boombignose/issues/new/choose> with a synthetic example of the same shape and say which kind you expected. For a way to get around the guard that you think is a security problem, use a private security advisory as described in [SECURITY.md](../SECURITY.md) instead of a public issue.
+Open an issue at <https://github.com/Boom-Vitt/boombignose-mods/issues/new/choose> with a synthetic example of the same shape and say which kind you expected. For a way to get around the guard that you think is a security problem, use a private security advisory as described in [SECURITY.md](../SECURITY.md) instead of a public issue.
 
 ---
 

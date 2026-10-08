@@ -198,7 +198,7 @@ Notes that only this page adds:
 | PDPC information and notifications | [pdpc.or.th](https://www.pdpc.or.th/) |
 | Personal data complaint | [complaint.pdpc.or.th](https://complaint.pdpc.or.th/) |
 | Legal questions | [consult.pdpc.or.th](https://consult.pdpc.or.th/) |
-| A bug or mistake in pdpa-thai | [GitHub Issues](https://github.com/Boom-Vitt/claude-mods-boombignose/issues) |
+| A bug or mistake in pdpa-thai | [GitHub Issues](https://github.com/Boom-Vitt/boombignose-mods/issues) |
 | A vulnerability in pdpa-thai | Follow [SECURITY.md](../SECURITY.md): report privately through GitHub's **Report a vulnerability** option if it is shown, otherwise use the fallback described there |
 
 Never put real personal data in a public issue. Describe the format with made-up data instead.
@@ -250,4 +250,4 @@ Never put real personal data in a public issue. Describe the format with made-up
 - **Penalties, fines and deadlines.** Deliberately out of scope.
 - **The model provider's data handling** (Anthropic, or the cloud platform Claude Code is configured to use), such as where data is processed, how long it is kept and how it is used. Not covered here; check the provider's terms and your organisation's agreement.
 
-Found something wrong or out of date? Please open a [GitHub issue](https://github.com/Boom-Vitt/claude-mods-boombignose/issues).
+Found something wrong or out of date? Please open a [GitHub issue](https://github.com/Boom-Vitt/boombignose-mods/issues).

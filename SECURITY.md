@@ -6,7 +6,7 @@
 
 ## ภาษาไทย
 
-claude-mods-boombignose เป็นโครงการชุมชนที่ไม่เป็นทางการ ดูแลโดยบุคคลคนเดียวในเวลาว่าง ไม่มีความเกี่ยวข้องกับ Anthropic, สำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคล (PDPC), สำนักงานพัฒนาธุรกรรมทางอิเล็กทรอนิกส์ (ETDA), สำนักงานพัฒนารัฐบาลดิจิทัล (DGA), กระทรวงดิจิทัลเพื่อเศรษฐกิจและสังคม (MDES) หรือหน่วยงานของรัฐใด ๆ ของไทย และไม่ได้รับการสนับสนุนหรือการรับรองจากองค์กรหรือหน่วยงานเหล่านี้
+boombignose-mods เป็นโครงการชุมชนที่ไม่เป็นทางการ ดูแลโดยบุคคลคนเดียวในเวลาว่าง ไม่มีความเกี่ยวข้องกับ Anthropic, สำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคล (PDPC), สำนักงานพัฒนาธุรกรรมทางอิเล็กทรอนิกส์ (ETDA), สำนักงานพัฒนารัฐบาลดิจิทัล (DGA), กระทรวงดิจิทัลเพื่อเศรษฐกิจและสังคม (MDES) หรือหน่วยงานของรัฐใด ๆ ของไทย และไม่ได้รับการสนับสนุนหรือการรับรองจากองค์กรหรือหน่วยงานเหล่านี้
 
 ### เวอร์ชันที่ยังได้รับการแก้ไข (supported versions)
 
@@ -20,7 +20,7 @@ claude-mods-boombignose เป็นโครงการชุมชนที�
 | `boom-big-nose-workflow` | 0.4.x | ไม่ได้รับการแก้ไข |
 | `pdpa-blur` (รวมเข้ากับ `pdpa-thai` ตั้งแต่เวอร์ชัน 0.2.0) | ไม่มี | ให้เปลี่ยนไปใช้ `pdpa-thai` |
 
-วิธีรับเวอร์ชันที่แก้ไขแล้ว ให้สั่ง `claude plugin marketplace update claude-mods-boombignose` แล้วสั่ง `claude plugin update pdpa-thai@claude-mods-boombignose` (มอดอื่นใช้คำสั่งเดียวกัน) จากนั้นเริ่ม Claude Code ใหม่
+วิธีรับเวอร์ชันที่แก้ไขแล้ว ให้สั่ง `claude plugin marketplace update boombignose-mods` แล้วสั่ง `claude plugin update pdpa-thai@boombignose-mods` (มอดอื่นใช้คำสั่งเดียวกัน) จากนั้นเริ่ม Claude Code ใหม่
 
 มอดทั้งหมดต้องใช้ Claude Code เวอร์ชันที่รองรับปลั๊กอินแบบ hook module และทดสอบแล้วกับ Claude Code เวอร์ชัน 2.1.289 เท่านั้น
 
@@ -30,7 +30,7 @@ claude-mods-boombignose เป็นโครงการชุมชนที�
 
 **ห้ามเปิด issue สาธารณะที่มีรายละเอียดของช่องโหว่**
 
-1. หากแท็บ **Security** ของ repository แสดงปุ่ม **Report a vulnerability** ให้กดปุ่มนั้นเพื่อส่งรายงานแบบส่วนตัว (private security advisory) ซึ่งเห็นได้เฉพาะผู้รายงาน ผู้ดูแลโครงการ และผู้ที่ผู้ดูแลเพิ่มเข้าใน advisory ทั้งนี้ สามารถเปิดแบบฟอร์มได้โดยตรงที่ <https://github.com/Boom-Vitt/claude-mods-boombignose/security/advisories/new>
+1. หากแท็บ **Security** ของ repository แสดงปุ่ม **Report a vulnerability** ให้กดปุ่มนั้นเพื่อส่งรายงานแบบส่วนตัว (private security advisory) ซึ่งเห็นได้เฉพาะผู้รายงาน ผู้ดูแลโครงการ และผู้ที่ผู้ดูแลเพิ่มเข้าใน advisory ทั้งนี้ สามารถเปิดแบบฟอร์มได้โดยตรงที่ <https://github.com/Boom-Vitt/boombignose-mods/security/advisories/new>
 2. หากไม่พบปุ่ม Report a vulnerability แสดงว่าการรายงานแบบส่วนตัวยังปิดอยู่ ให้เปิด issue ด้วยแบบฟอร์ม **Feature request** ตั้งชื่อเรื่องว่า "Request private security contact" เขียนในช่องแรกเพียงว่า "ขอช่องทางติดต่อส่วนตัวเพื่อรายงานด้านความปลอดภัย" และเว้นช่องอื่นว่างไว้ ห้ามใส่รายละเอียดใด ๆ ของช่องโหว่ (ไม่ระบุมอด ชนิดข้อมูล หรือวิธีทำซ้ำ) ผู้ดูแลจะเปิดการรายงานแบบส่วนตัว ตอบกลับใน issue นั้นพร้อมลิงก์ แล้วปิด issue โครงการไม่เผยแพร่ที่อยู่อีเมล
 
 ข้อมูลที่ควรมีในรายงาน
@@ -98,7 +98,7 @@ claude-mods-boombignose เป็นโครงการชุมชนที�
 
 [ไทย](#th) · **English**
 
-claude-mods-boombignose is an unofficial community project maintained by one individual in their spare time. It is not affiliated with, endorsed by or certified by Anthropic, the Personal Data Protection Committee Office (PDPC), the Electronic Transactions Development Agency (ETDA), the Digital Government Development Agency (DGA), the Ministry of Digital Economy and Society (MDES), or any Thai government body.
+boombignose-mods is an unofficial community project maintained by one individual in their spare time. It is not affiliated with, endorsed by or certified by Anthropic, the Personal Data Protection Committee Office (PDPC), the Electronic Transactions Development Agency (ETDA), the Digital Government Development Agency (DGA), the Ministry of Digital Economy and Society (MDES), or any Thai government body.
 
 ### Supported versions
 
@@ -112,7 +112,7 @@ Security fixes ship in the latest release of each mod only. Nothing is backporte
 | `boom-big-nose-workflow` | 0.4.x | not supported |
 | `pdpa-blur` (merged into `pdpa-thai` in 0.2.0) | none | move to `pdpa-thai` |
 
-To get a fix: `claude plugin marketplace update claude-mods-boombignose`, then `claude plugin update pdpa-thai@claude-mods-boombignose` (same for the other mods), then restart Claude Code.
+To get a fix: `claude plugin marketplace update boombignose-mods`, then `claude plugin update pdpa-thai@boombignose-mods` (same for the other mods), then restart Claude Code.
 
 All mods need a Claude Code build that supports hook-module plugins. They are tested only with Claude Code 2.1.289.
 
@@ -122,7 +122,7 @@ The API type declarations that Claude Code writes beside a mod it loads from a f
 
 **Do not open a public issue that describes a vulnerability.**
 
-1. If the repository's **Security** tab shows **Report a vulnerability**, choose it. This opens a private security advisory that only you, the maintainer and anyone the maintainer adds to the advisory can see. Direct link: <https://github.com/Boom-Vitt/claude-mods-boombignose/security/advisories/new>
+1. If the repository's **Security** tab shows **Report a vulnerability**, choose it. This opens a private security advisory that only you, the maintainer and anyone the maintainer adds to the advisory can see. Direct link: <https://github.com/Boom-Vitt/boombignose-mods/security/advisories/new>
 2. If that option is not shown, private reporting is switched off. Open an issue with the **Feature request** form, titled "Request private security contact". In the first field write only "Requesting a private contact for a security report", and leave the other field empty. Include no details at all: no mod, no data type, no steps. The maintainer will switch private reporting on, reply in that issue with the link, and then close the issue. No email address is given out.
 
 A useful report has:

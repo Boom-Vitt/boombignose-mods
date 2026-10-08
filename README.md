@@ -1,9 +1,9 @@
-# claude-mods-boombignose
+# boombignose-mods
 
 มอด (mod) สำหรับ Claude Code: ตัวช่วยลดความเสี่ยงในการส่งข้อมูลส่วนบุคคลให้โมเดล (`pdpa-thai`) แถบแสดงการใช้ context (`context-bar`) แผงรายการ agent (`agents-panel`) และเวิร์กโฟลว์ multi-agent (`boom-big-nose-workflow`)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-1F7A4D?style=flat-square)](LICENSE)
-[![tests](https://img.shields.io/github/actions/workflow/status/Boom-Vitt/claude-mods-boombignose/test.yml?branch=main&style=flat-square&label=tests)](https://github.com/Boom-Vitt/claude-mods-boombignose/actions/workflows/test.yml)
+[![tests](https://img.shields.io/github/actions/workflow/status/Boom-Vitt/boombignose-mods/test.yml?branch=main&style=flat-square&label=tests)](https://github.com/Boom-Vitt/boombignose-mods/actions/workflows/test.yml)
 [![For Claude Code](https://img.shields.io/badge/for-Claude_Code-555555?style=flat-square)](https://code.claude.com/docs/en/plugins)
 
 **ไทย** · [English](README.en.md)
@@ -27,11 +27,11 @@
 ต้องใช้ Claude Code เวอร์ชันที่รองรับปลั๊กอินแบบ hook module ทดสอบแล้วกับ Claude Code 2.1.289 เท่านั้น API ของ hook ยังอยู่ในระยะทดลองใช้ (early access) ดังนั้นเวอร์ชันก่อนหน้าหรือใหม่กว่าอาจข้ามการป้องกันบางส่วนหรือทั้งหมดโดยไม่มีการแจ้งเตือน ส่วนป้าย (badge) ของ CI แสดงเพียงว่าชุดทดสอบหน่วย (unit test) ผ่านบน Claude Code เวอร์ชันล่าสุด
 
 ```bash
-claude plugin marketplace add Boom-Vitt/claude-mods-boombignose
-claude plugin install pdpa-thai@claude-mods-boombignose
-claude plugin install context-bar@claude-mods-boombignose
-claude plugin install agents-panel@claude-mods-boombignose
-claude plugin install boom-big-nose-workflow@claude-mods-boombignose
+claude plugin marketplace add Boom-Vitt/boombignose-mods
+claude plugin install pdpa-thai@boombignose-mods
+claude plugin install context-bar@boombignose-mods
+claude plugin install agents-panel@boombignose-mods
+claude plugin install boom-big-nose-workflow@boombignose-mods
 ```
 
 แต่ละมอดทำงานแยกกัน เลือกติดตั้งเฉพาะมอดที่ต้องการได้
@@ -39,8 +39,8 @@ claude plugin install boom-big-nose-workflow@claude-mods-boombignose
 อัปเดตเป็นเวอร์ชันล่าสุด:
 
 ```bash
-claude plugin marketplace update claude-mods-boombignose
-claude plugin update pdpa-thai@claude-mods-boombignose
+claude plugin marketplace update boombignose-mods
+claude plugin update pdpa-thai@boombignose-mods
 ```
 
 จากนั้นเริ่ม Claude Code ใหม่เพื่อให้การอัปเดตมีผล
@@ -48,8 +48,8 @@ claude plugin update pdpa-thai@claude-mods-boombignose
 ปิดการทำงานชั่วคราว หรือถอนการติดตั้ง:
 
 ```bash
-claude plugin disable pdpa-thai@claude-mods-boombignose
-claude plugin uninstall pdpa-thai@claude-mods-boombignose
+claude plugin disable pdpa-thai@boombignose-mods
+claude plugin uninstall pdpa-thai@boombignose-mods
 ```
 
 ## มอดในชุดนี้
@@ -233,8 +233,8 @@ claude plugin uninstall pdpa-thai@claude-mods-boombignose
 ### ตรวจสอบเองใน 10 นาที
 
 ```bash
-git clone https://github.com/Boom-Vitt/claude-mods-boombignose
-cd claude-mods-boombignose
+git clone https://github.com/Boom-Vitt/boombignose-mods
+cd boombignose-mods
 ```
 
 1. อ่าน `pdpa-thai/hooks/detect.ts` (ประมาณ 280 บรรทัด) อาร์เรย์ `RULES` คือกฎการตรวจจับทั้งหมด และฟังก์ชัน `redact()` คือส่วนที่แทนค่าด้วยป้ายแทนค่า
@@ -260,7 +260,7 @@ claude plugin test pdpa-thai
 
 **ปิดการป้องกันอย่างไร**
 
-`/pdpa-guard off` ปิดการปกปิดและการปฏิเสธการเรียกเครื่องมือ โหมดและการตั้งค่าการพรางไม่ได้บันทึกลงดิสก์ และจะเริ่มที่โหมด `redact` พร้อมเปิดการพรางและปิดโหมดบันทึกหน้าจอทุกครั้งที่เริ่ม Claude Code ส่วน `/clear` จะคงโหมดปัจจุบันไว้หรือไม่นั้น ผู้ดูแลโครงการยังไม่ได้ตรวจสอบ (ดูโหมดปัจจุบันได้โดยใช้ `/pdpa-guard` โดยไม่ระบุอาร์กิวเมนต์ หรือดูที่แถบสถานะ) ส่วน `/pdpa-blur off` ปิดการพรางบนหน้าจอ และ `/pdpa-blur` โดยไม่ระบุอาร์กิวเมนต์จะสลับเปิดหรือปิด หากต้องการปิดทั้งมอด ใช้ `claude plugin disable pdpa-thai@claude-mods-boombignose`
+`/pdpa-guard off` ปิดการปกปิดและการปฏิเสธการเรียกเครื่องมือ โหมดและการตั้งค่าการพรางไม่ได้บันทึกลงดิสก์ และจะเริ่มที่โหมด `redact` พร้อมเปิดการพรางและปิดโหมดบันทึกหน้าจอทุกครั้งที่เริ่ม Claude Code ส่วน `/clear` จะคงโหมดปัจจุบันไว้หรือไม่นั้น ผู้ดูแลโครงการยังไม่ได้ตรวจสอบ (ดูโหมดปัจจุบันได้โดยใช้ `/pdpa-guard` โดยไม่ระบุอาร์กิวเมนต์ หรือดูที่แถบสถานะ) ส่วน `/pdpa-blur off` ปิดการพรางบนหน้าจอ และ `/pdpa-blur` โดยไม่ระบุอาร์กิวเมนต์จะสลับเปิดหรือปิด หากต้องการปิดทั้งมอด ใช้ `claude plugin disable pdpa-thai@boombignose-mods`
 
 **ข้อความทั่วไปถูกปกปิด (การตรวจจับผิด) ควรทำอย่างไร**
 
@@ -284,4 +284,4 @@ claude plugin test pdpa-thai
 
 ## ที่เก็บโค้ดต้นฉบับ
 
-โครงการนี้เผยแพร่เฉพาะที่ https://github.com/Boom-Vitt/claude-mods-boombignose และผ่าน marketplace `claude-mods-boombignose` ที่เพิ่มจากที่เก็บนี้ ผู้ดูแลโครงการไม่ได้ดูแล fork, mirror หรือสำเนาที่อัปโหลดซ้ำในที่อื่น ควรตรวจสอบโค้ดก่อนติดตั้งจากแหล่งอื่น
+โครงการนี้เผยแพร่เฉพาะที่ https://github.com/Boom-Vitt/boombignose-mods และผ่าน marketplace `boombignose-mods` ที่เพิ่มจากที่เก็บนี้ ผู้ดูแลโครงการไม่ได้ดูแล fork, mirror หรือสำเนาที่อัปโหลดซ้ำในที่อื่น ควรตรวจสอบโค้ดก่อนติดตั้งจากแหล่งอื่น
