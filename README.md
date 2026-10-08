@@ -36,6 +36,13 @@ claude plugin install boom-big-nose-workflow@boombignose-mods
 
 แต่ละมอดทำงานแยกกัน เลือกติดตั้งเฉพาะมอดที่ต้องการได้
 
+ใน Codex ติดตั้งได้เฉพาะ `boom-big-nose-workflow` เพราะมอดอื่นใช้ความสามารถที่มีเฉพาะใน Claude Code:
+
+```bash
+codex plugin marketplace add Boom-Vitt/boombignose-mods
+codex plugin add boom-big-nose-workflow@boombignose-mods
+```
+
 อัปเดตเป็นเวอร์ชันล่าสุด:
 
 ```bash

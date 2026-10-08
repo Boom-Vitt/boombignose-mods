@@ -28,6 +28,13 @@ Based on Keep a Changelog, with date headings and per-mod headings; each mod is 
 - **เพิ่ม** มอด `boom-big-nose-workflow` (เวิร์กโฟลว์ Orca) เข้า marketplace นี้ ติดตั้งด้วย `claude plugin install boom-big-nose-workflow@boombignose-mods` พร้อมแผนภาพขั้นตอน `boom-big-nose-workflow/docs/workflow-diagram.md` รายละเอียดของแต่ละเวอร์ชันอยู่ใน [boom-big-nose-workflow/CHANGELOG.md](boom-big-nose-workflow/CHANGELOG.md)
 - **Added** the `boom-big-nose-workflow` mod (the Orca workflow) to this marketplace: `claude plugin install boom-big-nose-workflow@boombignose-mods`, with a workflow diagram in `boom-big-nose-workflow/docs/workflow-diagram.md`. Per-version notes are in [boom-big-nose-workflow/CHANGELOG.md](boom-big-nose-workflow/CHANGELOG.md).
 
+### boom-big-nose-workflow: Codex และ SDLC / Codex and SDLC
+
+- **เพิ่ม** ติดตั้ง `boom-big-nose-workflow` ใน Codex ได้: `codex plugin marketplace add Boom-Vitt/boombignose-mods` แล้ว `codex plugin add boom-big-nose-workflow@boombignose-mods` ใน Codex marketplace นี้มีเฉพาะมอดนี้ เพราะมอดอื่นใช้ความสามารถของ Claude Code
+- **เพิ่ม** หลักการ SDLC: แต่ละขั้นของ Orca จับคู่กับเฟส (เก็บความต้องการ, ออกแบบ, พัฒนา, ทดสอบและรีวิว, ส่งมอบ, ดูแลต่อ) และแต่ละเฟสมีเกณฑ์ผ่าน ดู `boom-big-nose-workflow/docs/workflow-diagram.md`
+- **Added** `boom-big-nose-workflow` installs in Codex: `codex plugin marketplace add Boom-Vitt/boombignose-mods`, then `codex plugin add boom-big-nose-workflow@boombignose-mods`. In Codex this marketplace lists only this mod; the others rely on Claude Code features.
+- **Added** SDLC principles: each Orca step maps to a phase (requirements, design, build, test and review, release, maintain) with an exit criterion. See `boom-big-nose-workflow/docs/workflow-diagram.md`.
+
 ### pdpa-thai 0.3.0
 
 - **เพิ่ม** `/pdpa-blur record` (โหมดบันทึกหน้าจอ) สำหรับการบันทึกวิดีโอหน้าจอและการแชร์หน้าจอ การพรางยังเปิดอยู่และการวางเมาส์จะไม่แสดงค่าจริง โหมดนี้พรางเฉพาะค่าที่ตรวจพบในข้อความของผู้ใช้และของ Claude และไม่ครอบคลุมข้อมูลที่กฎตรวจไม่พบ ข้อความในช่องพรอมต์ก่อนกดส่ง การเรียกเครื่องมือ ผลลัพธ์ของเครื่องมือหรือคำสั่ง ข้อความต้นฉบับที่แสดงอยู่ที่อื่น และการเลือกหรือคัดลอกข้อความ ดูหัวข้อ "การบันทึกหรือแชร์หน้าจอ" ใน README

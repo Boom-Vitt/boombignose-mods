@@ -7,9 +7,9 @@
 <a id="ไทย"></a>
 ## ไทย
 
-มอด Orca สำหรับ Claude Code: แยกบทบาท agent (วางแผน / เขียนโค้ด / รวมหลายไฟล์ / รีวิว), แยก worktree ต่อฟีเจอร์ พร้อม port/env/DB ของตัวเอง, และบังคับให้ผ่าน lint+typecheck+test + รีวิวก่อน merge Context7 MCP และ Perplexity MCP ต่ออัตโนมัติ (ทั้งคู่ไม่บังคับ มี fallback)
+มอด Orca สำหรับ Claude Code และ Codex: แยกบทบาท agent (วางแผน / เขียนโค้ด / รวมหลายไฟล์ / รีวิว), แยก worktree ต่อฟีเจอร์ พร้อม port/env/DB ของตัวเอง, บังคับให้ผ่าน lint+typecheck+test + รีวิวก่อน merge และเดินงานตามเฟส SDLC ที่มีเกณฑ์ผ่านทุกเฟส Context7 MCP และ Perplexity MCP ต่ออัตโนมัติ (ทั้งคู่ไม่บังคับ มี fallback)
 
-> ชื่อ Grok Build / Claude Code / Codex ในมอดนี้คือ **บทบาท agent ภายใน Claude Code** ไม่ใช่การล็อกอินเข้าแอปภายนอก
+> ชื่อ Grok Build / Claude Code / Codex ในมอดนี้คือ **บทบาท agent** ไม่ใช่การล็อกอินเข้าแอปภายนอก
 
 ### ติดตั้ง
 
@@ -19,6 +19,15 @@ claude plugin install boom-big-nose-workflow@boombignose-mods
 ```
 
 รีสตาร์ท Claude Code แล้วรัน `/orca-setup` หรือ `/orca-doctor` เริ่มใช้งานทีละขั้น: [docs/QUICKSTART.md](docs/QUICKSTART.md)
+
+### ติดตั้งใน Codex
+
+```bash
+codex plugin marketplace add Boom-Vitt/boombignose-mods
+codex plugin add boom-big-nose-workflow@boombignose-mods
+```
+
+Codex ไม่มี slash command ของปลั๊กอิน ให้สั่งเป็นประโยค เช่น "วางแผนงานนี้ด้วย Orca" skill `orca-workflow` จะเปิด `commands/orca-<ขั้น>.md` แล้วรันสคริปต์ชุดเดียวกัน Codex เล่นแต่ละบทบาทเอง (หรือใช้ subagent ถ้าเปิดไว้) แต่ reviewer ต้องรันแยกจากบริบทที่เขียนโค้ด เช่น `codex exec -s read-only` ใน worktree นั้น `maxTurns` บังคับได้เฉพาะใน Claude Code การสร้าง worktree และ merge เขียนนอก workspace จึงอาจต้องกดอนุมัติ ส่วน Perplexity ให้ sign in ด้วย `codex mcp login perplexity`
 
 ### คำสั่ง
 
@@ -81,7 +90,7 @@ shell จะแทนค่าคีย์ตอนรันคำสั่ง �
 ### เอกสาร
 
 - `docs/QUICKSTART.md` / `docs/QUICKSTART.en.md` — เริ่มใช้งานทีละขั้น
-- `docs/workflow-diagram.md` — แผนภาพขั้นตอนทั้งหมด ตั้งแต่วางแผนจนถึง cleanup
+- `docs/workflow-diagram.md` — แผนภาพขั้นตอนทั้งหมด ตั้งแต่วางแผนจนถึง cleanup และหลักการ SDLC (เกณฑ์ผ่านของแต่ละเฟส)
 - `docs/orca-architecture.md` — โครงสร้าง + mermaid + ประวัติจุดอ่อน→แก้
 - `docs/exit-codes.md` — exit code ของทุกสคริปต์
 - `docs/decisions/` — ADR
@@ -101,9 +110,9 @@ bash tests/smoke.sh   # e2e: แผน -> worktree -> gate -> review -> queue ->
 <a id="english"></a>
 ## English
 
-Orca for Claude Code: role agents (plan / implement / integrate / review), one git worktree per feature with its own port/env/DB, and a lint+typecheck+test + reviewer gate before anything reaches the base branch. Context7 and Perplexity MCP connect automatically (both optional, with fallbacks).
+Orca for Claude Code and Codex: role agents (plan / implement / integrate / review), one git worktree per feature with its own port/env/DB, a lint+typecheck+test + reviewer gate before anything reaches the base branch, and SDLC phases that each end with an exit criterion. Context7 and Perplexity MCP connect automatically (both optional, with fallbacks).
 
-> "Grok Build", "Claude Code" and "Codex" in this mod are **roles inside Claude Code**, not logins to those external products.
+> "Grok Build", "Claude Code" and "Codex" in this mod are **agent roles**, not logins to those external products.
 
 ### Install
 
@@ -113,6 +122,15 @@ claude plugin install boom-big-nose-workflow@boombignose-mods
 ```
 
 Restart Claude Code, then run `/orca-setup` or `/orca-doctor`. Step by step: [docs/QUICKSTART.en.md](docs/QUICKSTART.en.md)
+
+### Install in Codex
+
+```bash
+codex plugin marketplace add Boom-Vitt/boombignose-mods
+codex plugin add boom-big-nose-workflow@boombignose-mods
+```
+
+Codex has no plugin slash commands: ask in plain words, e.g. "plan this with Orca". The `orca-workflow` skill opens `commands/orca-<step>.md` and runs the same scripts. Codex plays each role itself (or in subagents when enabled), but the reviewer runs apart from the context that wrote the code, e.g. `codex exec -s read-only` in that worktree. `maxTurns` is enforced only in Claude Code. Creating worktrees and merging write outside the workspace, so Codex may ask for approval. Sign in to Perplexity with `codex mcp login perplexity`.
 
 ### Commands
 
@@ -175,7 +193,7 @@ Copy `scripts/orca-gate.sh` + `scripts/lib/` into `<repo>/.github/scripts/` and 
 ### Docs
 
 - `docs/QUICKSTART.en.md` / `docs/QUICKSTART.md` — step-by-step start
-- `docs/workflow-diagram.md` — the whole workflow as one diagram, plan to cleanup
+- `docs/workflow-diagram.md` — the whole workflow as one diagram, plan to cleanup, and the SDLC phases with their exit criteria
 - `docs/orca-architecture.md` — structure, mermaid, weakness→fix history
 - `docs/exit-codes.md` — exit codes of every script
 - `docs/decisions/` — ADRs

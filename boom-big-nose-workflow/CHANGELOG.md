@@ -5,6 +5,8 @@ Based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); [SemVer](http
 ## Unreleased
 
 - **Added** `docs/workflow-diagram.md`: the whole workflow (plan, build, queue, review, merge, cleanup) as one diagram.
+- **Added** Codex support: `.codex-plugin/plugin.json` and a Codex marketplace (`.agents/plugins/marketplace.json` at the repository root), so `codex plugin marketplace add Boom-Vitt/boombignose-mods` then `codex plugin add boom-big-nose-workflow@boombignose-mods` installs the skills and both MCP servers. The `orca-workflow` skill explains how to run each step in Codex: `${CLAUDE_PLUGIN_ROOT}` path, `commands/orca-<step>.md` in place of slash commands, an independent reviewer and `codex mcp login perplexity`.
+- **Added** SDLC phases (requirements, design, build, test and review, release, maintain), each with an exit criterion, and the principles behind them, in the `orca-workflow` skill, the orchestrator's loop and `docs/workflow-diagram.md` (English and Thai).
 
 ## 0.4.0 - 2026-10-08
 
