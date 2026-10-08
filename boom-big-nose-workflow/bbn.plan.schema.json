@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Boom-Vitt/boombignose-mods/boom-big-nose-workflow/bbn.plan.schema.json",
+  "title": "BBN plan (.bbn/plan.json)",
+  "type": "object",
+  "required": ["version", "title", "status", "goal", "streams"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "const": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "status": { "enum": ["draft", "accepted"] },
+    "acceptedAt": { "type": "string" },
+    "planHash": { "type": "string" },
+    "goal": { "type": "string", "minLength": 1 },
+    "nonGoals": { "type": "array", "items": { "type": "string" } },
+    "base": { "type": "string" },
+    "risks": { "type": "array", "items": { "type": "string" } },
+    "replanTriggers": { "type": "array", "items": { "type": "string" } },
+    "streams": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["slug", "role", "paths", "acceptance"],
+        "additionalProperties": false,
+        "properties": {
+          "slug": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,59}$" },
+          "role": { "enum": ["claude-code", "codex"] },
+          "summary": { "type": "string" },
+          "paths": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
+          "dependsOn": { "type": "array", "items": { "type": "string" } },
+          "acceptance": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+        }
+      }
+    }
+  }
+}

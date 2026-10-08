@@ -1,38 +1,38 @@
-# Orca workflow diagram
+# BBN workflow diagram
 
-How a goal moves through Orca v0.4, from plan to cleanup, and how each step maps to an SDLC phase ([ไทย](#sdlc-th)). Step by step: [QUICKSTART.en.md](QUICKSTART.en.md) · [QUICKSTART.md](QUICKSTART.md) (ไทย). Roles and design: [orca-architecture.md](orca-architecture.md).
+How a goal moves through BBN v0.4, from plan to cleanup, and how each step maps to an SDLC phase ([ไทย](#sdlc-th)). Step by step: [QUICKSTART.en.md](QUICKSTART.en.md) · [QUICKSTART.md](QUICKSTART.md) (ไทย). Roles and design: [bbn-architecture.md](bbn-architecture.md).
 
 ```
                         ┌───────────────────────────┐
-  you ──── goal ──────▶ │  orca-orchestrator (hub)  │   setup unknown? → /orca-doctor (every problem has a fix: hint)
+  you ──── goal ──────▶ │  bbn-orchestrator  (hub)  │   setup unknown? → /bbn-doctor  (every problem has a fix: hint)
                         └─────────────┬─────────────┘
                  ┌────────────────────┴────────────────────┐
          several streams                              one ad-hoc stream
                  ▼                                         ▼
- ① /orca-plan                                     /orca-worktree <slug>
-   grok-build writes .orca/plan.json                port, .env.worktree,
-   (streams · owned paths · dependsOn · acceptance) .orca/ownership.json
+ ① /bbn-plan                                      /bbn-worktree  <slug>
+   grok-build writes .bbn/plan.json                 port, .env.worktree,
+   (streams · owned paths · dependsOn · acceptance) .bbn/ownership.json
    check ─▶ shown to you ─▶ ⏸ waits for your OK
    ─▶ accept ─▶ apply --apply
    (worktrees created in dependency order)
                  └────────────────────┬────────────────────┘
                                       ▼
  ② BUILD     ┌ worktree A ┐   ┌ worktree B ┐   ┌ worktree C ┐
-             │ claude-code│   │ claude-code│   │ claude-code│   maxTurns per agent (orca.config.json)
+             │ claude-code│   │ claude-code│   │ claude-code│   maxTurns per agent (bbn.config.json)
              └─────┬──────┘   └─────┬──────┘   └─────┬──────┘
                    └────── conflict? (exit 4) ──▶ codex integrates and resolves
-             each run logged: orca-ledger.sh agent <role> --turns N --status ok|partial|failed
+             each run logged: bbn-ledger.sh  agent <role> --turns N --status ok|partial|failed
                                       ▼
- ③ /orca-queue   merge order + predicted conflicts   ·   /orca-status quick overview
+ ③ /bbn-queue    merge order + predicted conflicts   ·   /bbn-status  quick overview
                                       ▼
- ④ /orca-review  orca-gate.sh (lint/typecheck/test) + orca-reviewer
+ ④ /bbn-review   bbn-gate.sh  (lint/typecheck/test) + bbn-reviewer
                  ├─ APPROVE ─────────────────────────────┐
                  └─ REQUEST_CHANGES / BLOCK ─▶ back to ② │
                                       ▼  ◀───────────────┘
- ⑤ /orca-merge   dry-run ─▶ --apply      (local merge; refused while a plan dependency is unmerged)
+ ⑤ /bbn-merge    dry-run ─▶ --apply      (local merge; refused while a plan dependency is unmerged)
                          └▶ --apply --pr (draft PR)        never force-push
                                       ▼                    stale review (exit 5) ─▶ back to ④
- ⑥ /orca-cleanup removes merged worktrees   ·   /orca-report turns used vs budget
+ ⑥ /bbn-cleanup  removes merged worktrees   ·   /bbn-report  turns used vs budget
 ```
 
 **Exit codes (every script):** 0 ok · 1 check failed · 2 usage · 3 refused by policy · 4 conflict → codex · 5 stale review. Details: [exit-codes.md](exit-codes.md).
@@ -41,7 +41,7 @@ How a goal moves through Orca v0.4, from plan to cleanup, and how each step maps
 
 ## SDLC phases
 
-Orca runs a change through the software development life cycle. Each phase ends with an exit criterion, and the next phase starts only when it holds.
+BBN runs a change through the software development life cycle. Each phase ends with an exit criterion, and the next phase starts only when it holds.
 
 ```
  requirements ──▶ design ──▶ build ──▶ test & review ──▶ release ──▶ maintain
@@ -51,14 +51,14 @@ Orca runs a change through the software development life cycle. Each phase ends 
                    └─────────────────────┘ wrong scope or design: re-plan, accept again
 ```
 
-| Phase | Orca step | Exit criterion |
+| Phase | BBN step | Exit criterion |
 |---|---|---|
 | Requirements | The hub agrees the goal, non-goals and success criteria with you | You confirm; every stream gets testable acceptance checks |
-| Design | ① `/orca-plan`: streams, owned paths, dependsOn, risks; an ADR in `docs/decisions/` for lasting decisions | `check` passes and you say OK, then `accept` |
-| Build | ② one worktree per stream (`claude-code`), integration (`codex`); ③ `/orca-queue` | The stream's acceptance checks pass; the run is in the ledger |
-| Test and review | ④ `/orca-review`: `orca-gate.sh` (lint/typecheck/test), then an independent `orca-reviewer` | Gate exit 0 (exit 2 explained) and APPROVE on the current patch |
-| Release | ⑤ `/orca-merge`: dry-run, then `--apply` or `--apply --pr` | Merged without force-push. Deploying stays the project's own step, with the owner's approval |
-| Maintain | ⑥ `/orca-cleanup`, `/orca-report`, ADR updates | Merged worktrees removed; budget use and failures reported |
+| Design | ① `/bbn-plan`: streams, owned paths, dependsOn, risks; an ADR in `docs/decisions/` for lasting decisions | `check` passes and you say OK, then `accept` |
+| Build | ② one worktree per stream (`claude-code`), integration (`codex`); ③ `/bbn-queue` | The stream's acceptance checks pass; the run is in the ledger |
+| Test and review | ④ `/bbn-review`: `bbn-gate.sh` (lint/typecheck/test), then an independent `bbn-reviewer` | Gate exit 0 (exit 2 explained) and APPROVE on the current patch |
+| Release | ⑤ `/bbn-merge`: dry-run, then `--apply` or `--apply --pr` | Merged without force-push. Deploying stays the project's own step, with the owner's approval |
+| Maintain | ⑥ `/bbn-cleanup`, `/bbn-report`, ADR updates | Merged worktrees removed; budget use and failures reported |
 
 **Principles**
 
@@ -72,16 +72,16 @@ Orca runs a change through the software development life cycle. Each phase ends 
 <a id="sdlc-th"></a>
 ## หลักการ SDLC (ภาษาไทย)
 
-Orca พางานผ่านวงจรการพัฒนาซอฟต์แวร์ (SDLC) ทีละเฟส แต่ละเฟสมีเกณฑ์ผ่าน ถ้ายังไม่ผ่านจะไม่เริ่มเฟสถัดไป
+BBN พางานผ่านวงจรการพัฒนาซอฟต์แวร์ (SDLC) ทีละเฟส แต่ละเฟสมีเกณฑ์ผ่าน ถ้ายังไม่ผ่านจะไม่เริ่มเฟสถัดไป
 
-| เฟส | ขั้นใน Orca | เกณฑ์ผ่าน |
+| เฟส | ขั้นใน BBN | เกณฑ์ผ่าน |
 |---|---|---|
 | เก็บความต้องการ | hub ตกลงเป้าหมาย สิ่งที่ไม่ทำ และเกณฑ์ความสำเร็จกับคุณ | คุณยืนยัน และทุก stream มี acceptance check ที่ทดสอบได้ |
-| ออกแบบ | ① `/orca-plan`: stream, ไฟล์ที่แต่ละ stream ดูแล, dependsOn, ความเสี่ยง และเขียน ADR ใน `docs/decisions/` สำหรับการตัดสินใจระยะยาว | `check` ผ่าน คุณตอบตกลง แล้วจึง `accept` |
-| พัฒนา | ② หนึ่ง worktree ต่อหนึ่ง stream (`claude-code`), รวมหลายไฟล์ (`codex`); ③ `/orca-queue` | acceptance check ของ stream ผ่าน และบันทึกการรันลง ledger แล้ว |
-| ทดสอบและรีวิว | ④ `/orca-review`: `orca-gate.sh` (lint/typecheck/test) แล้วให้ `orca-reviewer` ที่ไม่ได้เขียนโค้ดเองเป็นผู้ตรวจ | gate ได้ exit 0 (ถ้าได้ exit 2 ต้องอธิบายเหตุผล) และได้ APPROVE บน patch ปัจจุบัน |
-| ส่งมอบ | ⑤ `/orca-merge`: dry-run ก่อน แล้ว `--apply` หรือ `--apply --pr` | merge แล้วโดยไม่ force-push ส่วนการ deploy เป็นขั้นของโปรเจกต์เอง และต้องได้รับอนุมัติจากเจ้าของ |
-| ดูแลต่อ | ⑥ `/orca-cleanup`, `/orca-report`, อัปเดต ADR | ลบ worktree ที่ merge แล้ว และรายงานการใช้งบกับจุดที่ล้มเหลว |
+| ออกแบบ | ① `/bbn-plan`: stream, ไฟล์ที่แต่ละ stream ดูแล, dependsOn, ความเสี่ยง และเขียน ADR ใน `docs/decisions/` สำหรับการตัดสินใจระยะยาว | `check` ผ่าน คุณตอบตกลง แล้วจึง `accept` |
+| พัฒนา | ② หนึ่ง worktree ต่อหนึ่ง stream (`claude-code`), รวมหลายไฟล์ (`codex`); ③ `/bbn-queue` | acceptance check ของ stream ผ่าน และบันทึกการรันลง ledger แล้ว |
+| ทดสอบและรีวิว | ④ `/bbn-review`: `bbn-gate.sh` (lint/typecheck/test) แล้วให้ `bbn-reviewer` ที่ไม่ได้เขียนโค้ดเองเป็นผู้ตรวจ | gate ได้ exit 0 (ถ้าได้ exit 2 ต้องอธิบายเหตุผล) และได้ APPROVE บน patch ปัจจุบัน |
+| ส่งมอบ | ⑤ `/bbn-merge`: dry-run ก่อน แล้ว `--apply` หรือ `--apply --pr` | merge แล้วโดยไม่ force-push ส่วนการ deploy เป็นขั้นของโปรเจกต์เอง และต้องได้รับอนุมัติจากเจ้าของ |
+| ดูแลต่อ | ⑥ `/bbn-cleanup`, `/bbn-report`, อัปเดต ADR | ลบ worktree ที่ merge แล้ว และรายงานการใช้งบกับจุดที่ล้มเหลว |
 
 **หลักการ**
 

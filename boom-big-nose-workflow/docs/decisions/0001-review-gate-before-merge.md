@@ -2,17 +2,17 @@
 
 - **Status:** Accepted
 - **Date:** 2026-10-08
-- **Deciders:** Boom + Orca workflow maintainers
+- **Deciders:** Boom + BBN workflow maintainers
 
 ## Context
 
-In v0.1, Orca could coordinate parallel worktrees but had no mandatory test/lint/typecheck gate or independent reviewer before merging feature branches. Bad plans and broken trees could land on the base branch.
+In v0.1, BBN could coordinate parallel worktrees but had no mandatory test/lint/typecheck gate or independent reviewer before merging feature branches. Bad plans and broken trees could land on the base branch.
 
 ## Decision
 
-Before any `/orca-merge --apply`:
-1. `scripts/orca-gate.sh` must exit 0 (or an explicit human override is documented — default refuse).
-2. `orca-reviewer` must return `VERDICT: APPROVE`.
+Before any `/bbn-merge --apply`:
+1. `scripts/bbn-gate.sh` must exit 0 (or an explicit human override is documented — default refuse).
+2. `bbn-reviewer` must return `VERDICT: APPROVE`.
 3. After conflict resolution by Codex, the gate must be re-run.
 
 ## Consequences
@@ -24,4 +24,4 @@ Before any `/orca-merge --apply`:
 ## Alternatives considered
 
 1. Honor-system “run tests yourself” in agent prompts only — rejected as unenforceable.
-2. CI-only gate with no local script — deferred as complementary, not a replacement for local `/orca-review`.
+2. CI-only gate with no local script — deferred as complementary, not a replacement for local `/bbn-review`.

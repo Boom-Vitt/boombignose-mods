@@ -1,4 +1,4 @@
-# boom-big-nose-workflow (Orca) v0.4.0
+# boom-big-nose-workflow (BBN) v0.4.0
 
 [ไทย](#ไทย) · [English](#english)
 
@@ -7,7 +7,7 @@
 <a id="ไทย"></a>
 ## ไทย
 
-มอด Orca สำหรับ Claude Code และ Codex: แยกบทบาท agent (วางแผน / เขียนโค้ด / รวมหลายไฟล์ / รีวิว), แยก worktree ต่อฟีเจอร์ พร้อม port/env/DB ของตัวเอง, บังคับให้ผ่าน lint+typecheck+test + รีวิวก่อน merge และเดินงานตามเฟส SDLC ที่มีเกณฑ์ผ่านทุกเฟส Context7 MCP และ Perplexity MCP ต่ออัตโนมัติ (ทั้งคู่ไม่บังคับ มี fallback)
+มอด BBN สำหรับ Claude Code และ Codex: แยกบทบาท agent (วางแผน / เขียนโค้ด / รวมหลายไฟล์ / รีวิว), แยก worktree ต่อฟีเจอร์ พร้อม port/env/DB ของตัวเอง, บังคับให้ผ่าน lint+typecheck+test + รีวิวก่อน merge และเดินงานตามเฟส SDLC ที่มีเกณฑ์ผ่านทุกเฟส Context7 MCP และ Perplexity MCP ต่ออัตโนมัติ (ทั้งคู่ไม่บังคับ มี fallback)
 
 > ชื่อ Grok Build / Claude Code / Codex ในมอดนี้คือ **บทบาท agent** ไม่ใช่การล็อกอินเข้าแอปภายนอก
 
@@ -18,7 +18,7 @@ claude plugin marketplace add Boom-Vitt/boombignose-mods
 claude plugin install boom-big-nose-workflow@boombignose-mods
 ```
 
-รีสตาร์ท Claude Code แล้วรัน `/orca-setup` หรือ `/orca-doctor` เริ่มใช้งานทีละขั้น: [docs/QUICKSTART.md](docs/QUICKSTART.md)
+รีสตาร์ท Claude Code แล้วรัน `/bbn-setup` หรือ `/bbn-doctor` เริ่มใช้งานทีละขั้น: [docs/QUICKSTART.md](docs/QUICKSTART.md)
 
 ### ติดตั้งใน Codex
 
@@ -27,26 +27,26 @@ codex plugin marketplace add Boom-Vitt/boombignose-mods
 codex plugin add boom-big-nose-workflow@boombignose-mods
 ```
 
-Codex ไม่มี slash command ของปลั๊กอิน ให้สั่งเป็นประโยค เช่น "วางแผนงานนี้ด้วย Orca" skill `orca-workflow` จะเปิด `commands/orca-<ขั้น>.md` แล้วรันสคริปต์ชุดเดียวกัน Codex เล่นแต่ละบทบาทเอง (หรือใช้ subagent ถ้าเปิดไว้) แต่ reviewer ต้องรันแยกจากบริบทที่เขียนโค้ด เช่น `codex exec -s read-only` ใน worktree นั้น `maxTurns` บังคับได้เฉพาะใน Claude Code การสร้าง worktree และ merge เขียนนอก workspace จึงอาจต้องกดอนุมัติ ส่วน Perplexity ให้ sign in ด้วย `codex mcp login perplexity`
+Codex ไม่มี slash command ของปลั๊กอิน ให้สั่งเป็นประโยค เช่น "วางแผนงานนี้ด้วย BBN" skill `bbn-workflow` จะเปิด `commands/bbn-<ขั้น>.md` แล้วรันสคริปต์ชุดเดียวกัน Codex เล่นแต่ละบทบาทเอง (หรือใช้ subagent ถ้าเปิดไว้) แต่ reviewer ต้องรันแยกจากบริบทที่เขียนโค้ด เช่น `codex exec -s read-only` ใน worktree นั้น `maxTurns` บังคับได้เฉพาะใน Claude Code การสร้าง worktree และ merge เขียนนอก workspace จึงอาจต้องกดอนุมัติ ส่วน Perplexity ให้ sign in ด้วย `codex mcp login perplexity`
 
 ### คำสั่ง
 
 | คำสั่ง | หน้าที่ |
 |---|---|
-| `/orca-setup` | ตั้งค่าครั้งแรก (Perplexity sign-in, CI template) |
-| `/orca-doctor` | ตรวจสุขภาพ: git, gh, claude, node, MCP, คีย์ (มี/ไม่มี), config, แผน, ledger พร้อมวิธีแก้ (`fix:`) |
-| `/orca-plan` | checkpoint: เขียน/ตรวจ/accept `.orca/plan.json` (stream, เจ้าของไฟล์, dependency, acceptance) แล้วสร้าง worktree ตามลำดับ |
-| `/orca-worktree <slug>` | สร้าง worktree พร้อม isolation |
-| `/orca-status` | สถานะทุกสาขา: ahead/behind, gate/review, ไฟล์ที่ชนกัน |
-| `/orca-queue` | ลำดับ merge: dependency ในแผน, พร้อมหรือยัง, ทำนายการชนด้วย `git merge-tree`, ขนาด (อ่านอย่างเดียว) |
-| `/orca-review` | รัน gate + reviewer บันทึกคำตัดสิน |
-| `/orca-merge` | dry-run เป็นค่าเริ่มต้น; `--apply` รวมเข้า base ท้องถิ่น (ปฏิเสธถ้า dependency ในแผนยังไม่ merge); `--apply --pr` เปิด draft PR |
-| `/orca-cleanup` | ลบ worktree ที่ merge แล้ว (dry-run เป็นค่าเริ่มต้น) |
-| `/orca-report` | สรุปจาก ledger: gate/review/merge และ turn ที่แต่ละ agent ใช้เทียบงบ `maxTurns` |
+| `/bbn-setup` | ตั้งค่าครั้งแรก (Perplexity sign-in, CI template) |
+| `/bbn-doctor` | ตรวจสุขภาพ: git, gh, claude, node, MCP, คีย์ (มี/ไม่มี), config, แผน, ledger พร้อมวิธีแก้ (`fix:`) |
+| `/bbn-plan` | checkpoint: เขียน/ตรวจ/accept `.bbn/plan.json` (stream, เจ้าของไฟล์, dependency, acceptance) แล้วสร้าง worktree ตามลำดับ |
+| `/bbn-worktree <slug>` | สร้าง worktree พร้อม isolation |
+| `/bbn-status` | สถานะทุกสาขา: ahead/behind, gate/review, ไฟล์ที่ชนกัน |
+| `/bbn-queue` | ลำดับ merge: dependency ในแผน, พร้อมหรือยัง, ทำนายการชนด้วย `git merge-tree`, ขนาด (อ่านอย่างเดียว) |
+| `/bbn-review` | รัน gate + reviewer บันทึกคำตัดสิน |
+| `/bbn-merge` | dry-run เป็นค่าเริ่มต้น; `--apply` รวมเข้า base ท้องถิ่น (ปฏิเสธถ้า dependency ในแผนยังไม่ merge); `--apply --pr` เปิด draft PR |
+| `/bbn-cleanup` | ลบ worktree ที่ merge แล้ว (dry-run เป็นค่าเริ่มต้น) |
+| `/bbn-report` | สรุปจาก ledger: gate/review/merge และ turn ที่แต่ละ agent ใช้เทียบงบ `maxTurns` |
 
 ### Ledger
 
-ทุกสคริปต์บันทึกเหตุการณ์ลง `<git common dir>/orca/runs.jsonl` (ในเครื่อง ไม่เข้า git ไม่ส่งออกไปไหน) Orca บันทึก turn ของแต่ละ agent ด้วย `scripts/orca-ledger.sh agent <role> --turns N` ปิดได้ด้วย `ORCA_LEDGER=0`
+ทุกสคริปต์บันทึกเหตุการณ์ลง `<git common dir>/bbn/runs.jsonl` (ในเครื่อง ไม่เข้า git ไม่ส่งออกไปไหน) BBN บันทึก turn ของแต่ละ agent ด้วย `scripts/bbn-ledger.sh agent <role> --turns N` ปิดได้ด้วย `BBN_LEDGER=0`
 
 ### Perplexity (ไม่บังคับ)
 
@@ -81,17 +81,17 @@ shell จะแทนค่าคีย์ตอนรันคำสั่ง �
 
 ### งบและ config
 
-ดู `orca.config.json` (ตรวจด้วย `scripts/orca-config-check.mjs` ตาม `orca.config.schema.json`) `maxTurns` ของแต่ละ agent บังคับโดย Claude Code แต่ละขั้นของ gate จำกัดเวลา `reviewGate.stepTimeoutSec` (ค่าเริ่มต้น 1800 วินาที, override ด้วย `ORCA_GATE_TIMEOUT`) แผนตรวจตาม `orca.plan.schema.json` ความหมาย exit code: [docs/exit-codes.md](docs/exit-codes.md)
+ดู `bbn.config.json` (ตรวจด้วย `scripts/bbn-config-check.mjs` ตาม `bbn.config.schema.json`) `maxTurns` ของแต่ละ agent บังคับโดย Claude Code แต่ละขั้นของ gate จำกัดเวลา `reviewGate.stepTimeoutSec` (ค่าเริ่มต้น 1800 วินาที, override ด้วย `BBN_GATE_TIMEOUT`) แผนตรวจตาม `bbn.plan.schema.json` ความหมาย exit code: [docs/exit-codes.md](docs/exit-codes.md)
 
 ### CI สำหรับโปรเจกต์ของคุณ
 
-คัดลอก `scripts/orca-gate.sh` + `scripts/lib/` ไปที่ `<repo>/.github/scripts/` และ `templates/github/orca-gate.yml` ไปที่ `<repo>/.github/workflows/`
+คัดลอก `scripts/bbn-gate.sh` + `scripts/lib/` ไปที่ `<repo>/.github/scripts/` และ `templates/github/bbn-gate.yml` ไปที่ `<repo>/.github/workflows/`
 
 ### เอกสาร
 
 - `docs/QUICKSTART.md` / `docs/QUICKSTART.en.md` — เริ่มใช้งานทีละขั้น
 - `docs/workflow-diagram.md` — แผนภาพขั้นตอนทั้งหมด ตั้งแต่วางแผนจนถึง cleanup และหลักการ SDLC (เกณฑ์ผ่านของแต่ละเฟส)
-- `docs/orca-architecture.md` — โครงสร้าง + mermaid + ประวัติจุดอ่อน→แก้
+- `docs/bbn-architecture.md` — โครงสร้าง + mermaid + ประวัติจุดอ่อน→แก้
 - `docs/exit-codes.md` — exit code ของทุกสคริปต์
 - `docs/decisions/` — ADR
 - `CHANGELOG.md`
@@ -110,7 +110,7 @@ bash tests/smoke.sh   # e2e: แผน -> worktree -> gate -> review -> queue ->
 <a id="english"></a>
 ## English
 
-Orca for Claude Code and Codex: role agents (plan / implement / integrate / review), one git worktree per feature with its own port/env/DB, a lint+typecheck+test + reviewer gate before anything reaches the base branch, and SDLC phases that each end with an exit criterion. Context7 and Perplexity MCP connect automatically (both optional, with fallbacks).
+BBN for Claude Code and Codex: role agents (plan / implement / integrate / review), one git worktree per feature with its own port/env/DB, a lint+typecheck+test + reviewer gate before anything reaches the base branch, and SDLC phases that each end with an exit criterion. Context7 and Perplexity MCP connect automatically (both optional, with fallbacks).
 
 > "Grok Build", "Claude Code" and "Codex" in this mod are **agent roles**, not logins to those external products.
 
@@ -121,7 +121,7 @@ claude plugin marketplace add Boom-Vitt/boombignose-mods
 claude plugin install boom-big-nose-workflow@boombignose-mods
 ```
 
-Restart Claude Code, then run `/orca-setup` or `/orca-doctor`. Step by step: [docs/QUICKSTART.en.md](docs/QUICKSTART.en.md)
+Restart Claude Code, then run `/bbn-setup` or `/bbn-doctor`. Step by step: [docs/QUICKSTART.en.md](docs/QUICKSTART.en.md)
 
 ### Install in Codex
 
@@ -130,26 +130,26 @@ codex plugin marketplace add Boom-Vitt/boombignose-mods
 codex plugin add boom-big-nose-workflow@boombignose-mods
 ```
 
-Codex has no plugin slash commands: ask in plain words, e.g. "plan this with Orca". The `orca-workflow` skill opens `commands/orca-<step>.md` and runs the same scripts. Codex plays each role itself (or in subagents when enabled), but the reviewer runs apart from the context that wrote the code, e.g. `codex exec -s read-only` in that worktree. `maxTurns` is enforced only in Claude Code. Creating worktrees and merging write outside the workspace, so Codex may ask for approval. Sign in to Perplexity with `codex mcp login perplexity`.
+Codex has no plugin slash commands: ask in plain words, e.g. "plan this with BBN". The `bbn-workflow` skill opens `commands/bbn-<step>.md` and runs the same scripts. Codex plays each role itself (or in subagents when enabled), but the reviewer runs apart from the context that wrote the code, e.g. `codex exec -s read-only` in that worktree. `maxTurns` is enforced only in Claude Code. Creating worktrees and merging write outside the workspace, so Codex may ask for approval. Sign in to Perplexity with `codex mcp login perplexity`.
 
 ### Commands
 
 | Command | What it does |
 |---|---|
-| `/orca-setup` | First-time setup (Perplexity sign-in, CI template) |
-| `/orca-doctor` | Health check: git, gh, claude, node, MCP, key presence, config, plan, ledger, with `fix:` hints |
-| `/orca-plan` | Checkpoint: write/check/accept `.orca/plan.json` (streams, file ownership, dependencies, acceptance), then create worktrees in order |
-| `/orca-worktree <slug>` | Create an isolated worktree |
-| `/orca-status` | Every branch: ahead/behind, gate/review, overlapping files |
-| `/orca-queue` | Merge order: plan dependencies, readiness, conflicts predicted with `git merge-tree`, size (read-only) |
-| `/orca-review` | Run the gate + reviewer and record the verdict |
-| `/orca-merge` | Dry-run by default; `--apply` merges into the local base (refuses while a plan dependency is unmerged); `--apply --pr` opens a draft PR |
-| `/orca-cleanup` | Remove merged worktrees (dry-run by default) |
-| `/orca-report` | Ledger summary: gates/reviews/merges and turns each agent used vs its `maxTurns` budget |
+| `/bbn-setup` | First-time setup (Perplexity sign-in, CI template) |
+| `/bbn-doctor` | Health check: git, gh, claude, node, MCP, key presence, config, plan, ledger, with `fix:` hints |
+| `/bbn-plan` | Checkpoint: write/check/accept `.bbn/plan.json` (streams, file ownership, dependencies, acceptance), then create worktrees in order |
+| `/bbn-worktree <slug>` | Create an isolated worktree |
+| `/bbn-status` | Every branch: ahead/behind, gate/review, overlapping files |
+| `/bbn-queue` | Merge order: plan dependencies, readiness, conflicts predicted with `git merge-tree`, size (read-only) |
+| `/bbn-review` | Run the gate + reviewer and record the verdict |
+| `/bbn-merge` | Dry-run by default; `--apply` merges into the local base (refuses while a plan dependency is unmerged); `--apply --pr` opens a draft PR |
+| `/bbn-cleanup` | Remove merged worktrees (dry-run by default) |
+| `/bbn-report` | Ledger summary: gates/reviews/merges and turns each agent used vs its `maxTurns` budget |
 
 ### Ledger
 
-Every script appends events to `<git common dir>/orca/runs.jsonl` (local only, never committed or uploaded). Orca records each agent's turns with `scripts/orca-ledger.sh agent <role> --turns N`. Turn it off with `ORCA_LEDGER=0`.
+Every script appends events to `<git common dir>/bbn/runs.jsonl` (local only, never committed or uploaded). BBN records each agent's turns with `scripts/bbn-ledger.sh agent <role> --turns N`. Turn it off with `BBN_LEDGER=0`.
 
 ### Perplexity (optional)
 
@@ -184,17 +184,17 @@ Nothing required (anonymous works). For higher limits: `export CONTEXT7_API_KEY=
 
 ### Budgets and config
 
-See `orca.config.json` (validated by `scripts/orca-config-check.mjs` against `orca.config.schema.json`). Each agent's `maxTurns` is enforced by Claude Code. Each gate step is limited by `reviewGate.stepTimeoutSec` (default 1800 s, override with `ORCA_GATE_TIMEOUT`). Plans are validated against `orca.plan.schema.json`. Exit codes: [docs/exit-codes.md](docs/exit-codes.md)
+See `bbn.config.json` (validated by `scripts/bbn-config-check.mjs` against `bbn.config.schema.json`). Each agent's `maxTurns` is enforced by Claude Code. Each gate step is limited by `reviewGate.stepTimeoutSec` (default 1800 s, override with `BBN_GATE_TIMEOUT`). Plans are validated against `bbn.plan.schema.json`. Exit codes: [docs/exit-codes.md](docs/exit-codes.md)
 
 ### CI for your own projects
 
-Copy `scripts/orca-gate.sh` + `scripts/lib/` into `<repo>/.github/scripts/` and `templates/github/orca-gate.yml` into `<repo>/.github/workflows/`.
+Copy `scripts/bbn-gate.sh` + `scripts/lib/` into `<repo>/.github/scripts/` and `templates/github/bbn-gate.yml` into `<repo>/.github/workflows/`.
 
 ### Docs
 
 - `docs/QUICKSTART.en.md` / `docs/QUICKSTART.md` — step-by-step start
 - `docs/workflow-diagram.md` — the whole workflow as one diagram, plan to cleanup, and the SDLC phases with their exit criteria
-- `docs/orca-architecture.md` — structure, mermaid, weakness→fix history
+- `docs/bbn-architecture.md` — structure, mermaid, weakness→fix history
 - `docs/exit-codes.md` — exit codes of every script
 - `docs/decisions/` — ADRs
 - `CHANGELOG.md`
