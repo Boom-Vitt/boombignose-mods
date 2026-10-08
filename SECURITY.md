@@ -17,6 +17,7 @@ claude-mods-boombignose เป็นโครงการชุมชนที�
 | `pdpa-thai` | 0.3.x | ไม่ได้รับการแก้ไข |
 | `context-bar` | 0.4.x | ไม่ได้รับการแก้ไข |
 | `agents-panel` | 0.1.x | ไม่ได้รับการแก้ไข |
+| `boom-big-nose-workflow` | 0.4.x | ไม่ได้รับการแก้ไข |
 | `pdpa-blur` (รวมเข้ากับ `pdpa-thai` ตั้งแต่เวอร์ชัน 0.2.0) | ไม่มี | ให้เปลี่ยนไปใช้ `pdpa-thai` |
 
 วิธีรับเวอร์ชันที่แก้ไขแล้ว ให้สั่ง `claude plugin marketplace update claude-mods-boombignose` แล้วสั่ง `claude plugin update pdpa-thai@claude-mods-boombignose` (มอดอื่นใช้คำสั่งเดียวกัน) จากนั้นเริ่ม Claude Code ใหม่
@@ -55,7 +56,7 @@ claude-mods-boombignose เป็นโครงการชุมชนที�
 - เทคนิคที่ทำให้ค่าซึ่งควรถูกปกปิดหลุดผ่านตัวป้องกันได้อย่างสม่ำเสมอ ทั้งที่ค่านั้นอยู่ในรูปแบบที่ [docs/DETECTION.md](docs/DETECTION.md) ระบุว่าครอบคลุม เช่น การแปลงรหัสอักขระ (encoding) หรือการจัดรูปแบบข้อความที่ไม่ได้ระบุไว้ในข้อจำกัดที่ทราบ ส่วนกรณีที่ตัวตรวจจับ (detector) พลาดเป็นครั้งคราว ให้รายงานด้วยแบบฟอร์ม Bug report ตามปกติพร้อมตัวอย่างสมมติ
 - วิธีที่ทำให้ตัวป้องกันเองคัดลอกค่าเดิมที่ตรวจพบไปไว้ใน log สถานะของปลั๊กอิน (plugin state) หรือข้อความในทรานสคริปต์ (transcript) ที่ตัวป้องกันเขียนทับแล้ว
 - ข้อความที่ทำให้ตัวตรวจจับทำงานนานผิดปกติหรือค้าง เช่น ReDoS (regular expression denial of service) กรณีนี้เป็นการหลบเลี่ยงตัวป้องกัน ไม่ใช่เพียงความล่าช้า เพราะ Claude Code จะข้าม hook ที่ทำงานเกินเวลาที่กำหนดต่อ hook และส่งข้อความไปตามเดิมโดยไม่แจ้งเตือน (fail-open)
-- มอดที่เรียกเครือข่าย โปรเซส (process) โมเดล หรือ MCP นอกเหนือจากที่ README ระบุไว้ กรณีเดียวที่ระบุไว้คือปุ่ม ▶ run ของ `agents-panel` ซึ่งขอให้ Claude Code เริ่ม subagent เมื่อผู้ใช้กดปุ่มเท่านั้น และ subagent นั้นส่งบทสนทนาไปยังผู้ให้บริการโมเดลที่ตั้งค่าไว้ (โดยค่าเริ่มต้นคือ Anthropic) เช่นเดียวกับ agent อื่น ส่วน `pdpa-thai` และ `context-bar` ไม่เรียกสิ่งเหล่านี้เลย
+- มอดที่เรียกเครือข่าย โปรเซส (process) โมเดล หรือ MCP นอกเหนือจากที่ README ระบุไว้ กรณีที่ระบุไว้คือปุ่ม ▶ run ของ `agents-panel` ซึ่งขอให้ Claude Code เริ่ม subagent เมื่อผู้ใช้กดปุ่มเท่านั้น และ subagent นั้นส่งบทสนทนาไปยังผู้ให้บริการโมเดลที่ตั้งค่าไว้ (โดยค่าเริ่มต้นคือ Anthropic) เช่นเดียวกับ agent อื่น และ `boom-big-nose-workflow` ซึ่งรันสคริปต์ของมอด เริ่ม subagent และใช้เซิร์ฟเวอร์ MCP Context7 และ Perplexity ตามที่ README ระบุ ส่วน `pdpa-thai` และ `context-bar` ไม่เรียกสิ่งเหล่านี้เลย
 - ปัญหาด้านห่วงโซ่อุปทานซอฟต์แวร์ (supply chain) ใน CI เช่น ใน `.github/workflows/` หรือ `.github/dependabot.yml`
 
 ไม่อยู่ในขอบเขต (out of scope)
@@ -108,6 +109,7 @@ Security fixes ship in the latest release of each mod only. Nothing is backporte
 | `pdpa-thai` | 0.3.x | not supported |
 | `context-bar` | 0.4.x | not supported |
 | `agents-panel` | 0.1.x | not supported |
+| `boom-big-nose-workflow` | 0.4.x | not supported |
 | `pdpa-blur` (merged into `pdpa-thai` in 0.2.0) | none | move to `pdpa-thai` |
 
 To get a fix: `claude plugin marketplace update claude-mods-boombignose`, then `claude plugin update pdpa-thai@claude-mods-boombignose` (same for the other mods), then restart Claude Code.
@@ -146,7 +148,7 @@ In scope:
 - a technique that reliably slips a value past the guard when [docs/DETECTION.en.md](docs/DETECTION.en.md) says its format is covered (for example an encoding or formatting trick not listed in the known limits). A single missed sample is a normal bug: open a Bug report with a fake sample.
 - a way to make the guard itself copy an original value it detected into a log, plugin state, or text it rewrote in the transcript
 - input that makes the detector hang or run for an unreasonable time (ReDoS or similar). This is a bypass, not only a slowdown: Claude Code skips a hook that runs past its per-hook time limit and sends the text unchanged, with no notice (fail-open).
-- a mod that calls the network, a process, a model or MCP in a way its README does not document. The only documented case is the `agents-panel` ▶ run button, which asks Claude Code to start a subagent when you press it; that subagent's conversation goes to your configured model provider (Anthropic by default) like any agent's. `pdpa-thai` and `context-bar` make no such calls.
+- a mod that calls the network, a process, a model or MCP in a way its README does not document. The documented cases are the `agents-panel` ▶ run button, which asks Claude Code to start a subagent when you press it; that subagent's conversation goes to your configured model provider (Anthropic by default) like any agent's, and `boom-big-nose-workflow`, which runs its own scripts, starts subagents and uses the Context7 and Perplexity MCP servers as the README describes. `pdpa-thai` and `context-bar` make no such calls.
 - supply-chain issues in CI, such as `.github/workflows/` or `.github/dependabot.yml`
 
 Out of scope:

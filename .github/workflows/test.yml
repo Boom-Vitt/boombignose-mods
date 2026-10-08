@@ -15,7 +15,7 @@ jobs:
       - name: Validate marketplace and every mod
         run: |
           claude plugin validate .
-          for m in context-bar agents-panel pdpa-thai; do claude plugin validate "$m"; done
+          for m in context-bar agents-panel pdpa-thai boom-big-nose-workflow; do claude plugin validate "$m"; done
       - name: Mod tests
         run: for m in context-bar pdpa-thai; do claude plugin test "$m"; done
       - name: Local-only check (no network, process, model or MCP calls from any mod)

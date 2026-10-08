@@ -6,7 +6,7 @@
     "url": "https://github.com/Boom-Vitt"
   },
   "metadata": {
-    "description": "Claude Code mods for Thai users: PDPA guard, context bar, agents panel"
+    "description": "Claude Code mods for Thai users: PDPA guard, context bar, agents panel, Orca multi-agent workflow"
   },
   "plugins": [
     {
@@ -35,6 +35,15 @@
       "license": "MIT",
       "category": "development",
       "keywords": ["agents", "subagents", "panel"]
+    },
+    {
+      "name": "boom-big-nose-workflow",
+      "source": "./boom-big-nose-workflow",
+      "description": "เวิร์กโฟลว์ multi-agent (Orca) สำหรับ Claude Code: agent วางแผน เขียนโค้ด รวมโค้ด และรีวิว แยก git worktree ต่อฟีเจอร์ พร้อม port/env/DB ของตัวเอง ต้องผ่าน lint/typecheck/test และรีวิวก่อน merge มีสคริปต์ merge และ cleanup แบบ dry-run และต่อ Context7 กับ Perplexity MCP (ไม่บังคับ มี web search สำรอง)",
+      "version": "0.4.0",
+      "license": "MIT",
+      "category": "development",
+      "keywords": ["orca", "workflow", "multi-agent", "worktree", "review-gate", "mcp"]
     }
   ]
 }

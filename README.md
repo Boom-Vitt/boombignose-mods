@@ -1,6 +1,6 @@
 # claude-mods-boombignose
 
-มอด (mod) สำหรับ Claude Code: ตัวช่วยลดความเสี่ยงในการส่งข้อมูลส่วนบุคคลให้โมเดล (`pdpa-thai`) แถบแสดงการใช้ context (`context-bar`) และแผงรายการ agent (`agents-panel`)
+มอด (mod) สำหรับ Claude Code: ตัวช่วยลดความเสี่ยงในการส่งข้อมูลส่วนบุคคลให้โมเดล (`pdpa-thai`) แถบแสดงการใช้ context (`context-bar`) แผงรายการ agent (`agents-panel`) และเวิร์กโฟลว์ multi-agent (`boom-big-nose-workflow`)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-1F7A4D?style=flat-square)](LICENSE)
 [![tests](https://img.shields.io/github/actions/workflow/status/Boom-Vitt/claude-mods-boombignose/test.yml?branch=main&style=flat-square&label=tests)](https://github.com/Boom-Vitt/claude-mods-boombignose/actions/workflows/test.yml)
@@ -20,7 +20,7 @@
 
 `pdpa-thai` ตรวจหาข้อมูลส่วนบุคคลรูปแบบที่พบบ่อย ทั้งรูปแบบเฉพาะของไทยและรูปแบบสากล โดยทำงานภายในโปรเซสของ Claude Code แล้วแทนค่าที่พบด้วยป้ายแทนค่า (placeholder) ก่อนที่ Claude Code จะส่งบทสนทนาออกไป มอดนี้ออกแบบมาเพื่อช่วยลดความเสี่ยงเท่านั้น การติดตั้งมอดนี้ไม่ได้ทำให้องค์กรปฏิบัติตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (PDPA) หรือกฎหมายอื่นใด และไม่ทดแทนการประเมินโดยผู้เชี่ยวชาญ
 
-อีก 2 มอดเป็นเครื่องมือช่วยงานทั่วไปที่ไม่เกี่ยวกับ PDPA
+มอดอื่นเป็นเครื่องมือช่วยงานทั่วไปที่ไม่เกี่ยวกับ PDPA
 
 ## ติดตั้ง
 
@@ -31,6 +31,7 @@ claude plugin marketplace add Boom-Vitt/claude-mods-boombignose
 claude plugin install pdpa-thai@claude-mods-boombignose
 claude plugin install context-bar@claude-mods-boombignose
 claude plugin install agents-panel@claude-mods-boombignose
+claude plugin install boom-big-nose-workflow@claude-mods-boombignose
 ```
 
 แต่ละมอดทำงานแยกกัน เลือกติดตั้งเฉพาะมอดที่ต้องการได้
@@ -58,6 +59,7 @@ claude plugin uninstall pdpa-thai@claude-mods-boombignose
 | `pdpa-thai` | 0.3.0 | `/pdpa-guard [redact\|block\|off]`, `/pdpa-blur [on\|off\|record]` | ปกปิดข้อมูลส่วนบุคคลที่ตรวจพบก่อนส่งให้ Claude และพรางข้อมูลบนหน้าจอ (วางเมาส์เพื่อดู หรือวางเมาส์แล้วไม่แสดงค่าจริงในโหมดบันทึกหน้าจอ) |
 | `context-bar` | 0.4.0 | `/context-bar` | แถบเหนือช่องพิมพ์ แสดงการใช้ context window แยกตามหมวด และเวลาที่เหลือของ prompt cache |
 | `agents-panel` | 0.1.0 | `/agents-panel` | แผงด้านข้างแสดง agent ของโปรเจกต์ ของผู้ใช้ และของปลั๊กอิน พร้อมปุ่มเรียกใช้ |
+| `boom-big-nose-workflow` | 0.4.0 | `/orca-plan`, `/orca-review`, `/orca-merge` และคำสั่ง `/orca-*` อื่น | เวิร์กโฟลว์ Orca: แยก worktree ต่อฟีเจอร์ ให้ agent วางแผน เขียนโค้ด รวมโค้ด และรีวิว แล้ว merge ผ่าน gate ([README](boom-big-nose-workflow/README.md), [แผนภาพ](boom-big-nose-workflow/docs/workflow-diagram.md)) |
 
 `/context-bar` และ `/agents-panel` เป็นคำสั่งสลับเปิดและปิด `/pdpa-blur` สลับเปิดและปิดได้เช่นกัน หรือรับ `on`, `off` หรือ `record` ส่วน `/pdpa-guard` รับชื่อโหมด
 
@@ -180,6 +182,7 @@ claude plugin uninstall pdpa-thai@claude-mods-boombignose
 
 - การตรวจจับและการปกปิดทำงานภายในโปรเซสของ Claude Code (บนเครื่องของผู้ใช้เมื่อใช้งานในเครื่อง หรือบนเครื่องที่เซสชันคลาวด์หรือเซสชันระยะไกลทำงานอยู่) ในเซสชันคลาวด์หรือเซสชันระยะไกล ค่าเดิมอยู่บนเครื่องนั้นแล้วก่อนที่มอดจะตรวจ มอดเปลี่ยนเฉพาะสิ่งที่ส่งต่อจากเครื่องนั้นไปให้โมเดล
 - `pdpa-thai` และ `context-bar` ไม่เรียกเครือข่าย โปรเซสภายนอก โมเดล หรือ MCP ด้วยตัวเอง ส่วน `agents-panel` เริ่ม subagent ผ่าน `$.agent.spawn` เฉพาะเมื่อผู้ใช้กดปุ่ม `▶ run` และ subagent นั้นทำงานเหมือน agent ทั่วไป
+- `boom-big-nose-workflow` ไม่มีโค้ดฮุก คำสั่งของมอดรันสคริปต์ของมอดเอง (git, node, `claude mcp list` และ `gh` สำหรับการตรวจการล็อกอินใน `/orca-doctor` และ `/orca-merge --apply --pr`) เริ่ม subagent ในบทบาทวางแผน เขียนโค้ด รวมโค้ด และรีวิว ซึ่งทำงานเหมือน agent ทั่วไป และเพิ่มเซิร์ฟเวอร์ MCP ระยะไกล 2 ตัว คือ Context7 (`https://mcp.context7.com/mcp`) และ Perplexity (`https://api.perplexity.ai/mcp` ต้อง sign in ก่อน) คำค้นที่ agent ส่งไปยังเซิร์ฟเวอร์ที่เชื่อมต่ออยู่จะไปถึงบริการเหล่านั้น
 - ทุกครั้งที่มีการ push และ pull request CI จะทำการตรวจเฉพาะในเครื่อง (local-only) 2 รายการ ได้แก่ การค้นหาข้อความในโค้ดฮุกของทุกมอดว่ามีการเรียกเครือข่าย โปรเซส โมเดล หรือ MCP หรือ `fetch(` หรือไม่ และการตรวจว่าการเรียกเอนจินทุกรายการในบรรทัด `calls:` ที่ `claude plugin validate pdpa-thai` แสดง เป็นการเรียกกลุ่ม state, ui, clock หรือ command เท่านั้น การตรวจทั้งสองไม่ได้พิสูจน์สิ่งใดเกี่ยวกับมอดอื่นหรือตัว Claude Code เอง รายละเอียดของการตรวจทั้งสองและสิ่งที่ไม่ครอบคลุมอธิบายไว้แห่งเดียวในหัวข้อ [สิ่งที่ CI ตรวจ](CONTRIBUTING.md#สิ่งที่-ci-ตรวจ)
 - บทสนทนาที่ปกปิดแล้วยังถูกส่งไปยังผู้ให้บริการโมเดลที่ตั้งค่าไว้ (โดยค่าเริ่มต้นคือ Anthropic หรือผู้ให้บริการอื่น เช่น Amazon Bedrock หรือ Google Cloud Vertex AI) เช่นเดียวกับบทสนทนา Claude Code ทั่วไป
 - มอดนี้ไม่ได้เปลี่ยนวิธีที่ผู้ให้บริการโมเดลที่ตั้งค่าไว้ (โดยค่าเริ่มต้นคือ Anthropic) จัดเก็บ เก็บรักษา หรือใช้ข้อมูลที่ได้รับ ซึ่งเป็นไปตามข้อตกลงและการตั้งค่าระหว่างผู้ใช้หรือองค์กรกับผู้ให้บริการนั้น

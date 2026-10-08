@@ -14,7 +14,7 @@ body:
     id: mod
     attributes:
       label: มอด / Mod
-      options: [pdpa-thai, context-bar, agents-panel, อื่น ๆ / other]
+      options: [pdpa-thai, context-bar, agents-panel, boom-big-nose-workflow, อื่น ๆ / other]
     validations: { required: true }
   - type: textarea
     id: what
