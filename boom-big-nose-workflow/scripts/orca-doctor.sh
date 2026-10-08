@@ -65,7 +65,7 @@ else
     pk="$(grep -E '^perplexity-key:' "$tmp" || true)"
     case "$c7" in
       *Connected*) ok "context7 connected" ;;
-      "") warn "context7 not listed: plugin disabled? (fallback: WebFetch of official docs)"; fix "claude plugin enable boom-big-nose-workflow@claude-mods-boombignose" ;;
+      "") warn "context7 not listed: plugin disabled? (fallback: WebFetch of official docs)"; fix "claude plugin enable boom-big-nose-workflow@boombignose-mods" ;;
       *) warn "context7: ${c7##* - } (fallback: WebFetch of official docs)"; fix "check network; Context7 needs no key" ;;
     esac
     case "$px" in

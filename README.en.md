@@ -1,9 +1,9 @@
-# claude-mods-boombignose
+# boombignose-mods
 
 Mods for Claude Code: a guard that helps reduce the personal data sent to the model (`pdpa-thai`), a context usage bar (`context-bar`), an agents side pane (`agents-panel`) and a multi-agent workflow (`boom-big-nose-workflow`).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-1F7A4D?style=flat-square)](LICENSE)
-[![tests](https://img.shields.io/github/actions/workflow/status/Boom-Vitt/claude-mods-boombignose/test.yml?branch=main&style=flat-square&label=tests)](https://github.com/Boom-Vitt/claude-mods-boombignose/actions/workflows/test.yml)
+[![tests](https://img.shields.io/github/actions/workflow/status/Boom-Vitt/boombignose-mods/test.yml?branch=main&style=flat-square&label=tests)](https://github.com/Boom-Vitt/boombignose-mods/actions/workflows/test.yml)
 [![For Claude Code](https://img.shields.io/badge/for-Claude_Code-555555?style=flat-square)](https://code.claude.com/docs/en/plugins)
 
 [ไทย](README.md) · **English**
@@ -27,11 +27,11 @@ The other mods are general productivity tools and have nothing to do with the PD
 Requires a Claude Code build that supports hook-module plugins. Tested only with Claude Code 2.1.289. The hook API is early access, so an older or newer build may skip some or all of the guard without warning; the CI badge shows only that the unit tests pass on the latest build.
 
 ```bash
-claude plugin marketplace add Boom-Vitt/claude-mods-boombignose
-claude plugin install pdpa-thai@claude-mods-boombignose
-claude plugin install context-bar@claude-mods-boombignose
-claude plugin install agents-panel@claude-mods-boombignose
-claude plugin install boom-big-nose-workflow@claude-mods-boombignose
+claude plugin marketplace add Boom-Vitt/boombignose-mods
+claude plugin install pdpa-thai@boombignose-mods
+claude plugin install context-bar@boombignose-mods
+claude plugin install agents-panel@boombignose-mods
+claude plugin install boom-big-nose-workflow@boombignose-mods
 ```
 
 Each mod works on its own; install only the ones you want.
@@ -39,8 +39,8 @@ Each mod works on its own; install only the ones you want.
 Update to the latest version:
 
 ```bash
-claude plugin marketplace update claude-mods-boombignose
-claude plugin update pdpa-thai@claude-mods-boombignose
+claude plugin marketplace update boombignose-mods
+claude plugin update pdpa-thai@boombignose-mods
 ```
 
 Restart Claude Code to apply the update.
@@ -48,8 +48,8 @@ Restart Claude Code to apply the update.
 Disable for now, or uninstall:
 
 ```bash
-claude plugin disable pdpa-thai@claude-mods-boombignose
-claude plugin uninstall pdpa-thai@claude-mods-boombignose
+claude plugin disable pdpa-thai@boombignose-mods
+claude plugin uninstall pdpa-thai@boombignose-mods
 ```
 
 ## Mods
@@ -233,8 +233,8 @@ Do not take this README's word for it; check it yourself.
 ### Audit it in 10 minutes
 
 ```bash
-git clone https://github.com/Boom-Vitt/claude-mods-boombignose
-cd claude-mods-boombignose
+git clone https://github.com/Boom-Vitt/boombignose-mods
+cd boombignose-mods
 ```
 
 1. Read `pdpa-thai/hooks/detect.ts` (about 280 lines). The `RULES` array is every detection rule; `redact()` does the replacement.
@@ -260,7 +260,7 @@ Yes, or your configured model provider does. Claude Code still sends the convers
 
 **How do I turn it off?**
 
-`/pdpa-guard off` turns off redaction and the tool-call refusal. The mode and the mask settings are not saved to disk and start as `redact` with the mask on and recording mode off whenever Claude Code starts; whether `/clear` keeps the current mode has not been verified by the maintainer (run `/pdpa-guard` with no argument, or look at the status line, to see the current mode). `/pdpa-blur off` turns the on-screen mask off, and `/pdpa-blur` with no argument toggles it. To turn off the whole mod, run `claude plugin disable pdpa-thai@claude-mods-boombignose`.
+`/pdpa-guard off` turns off redaction and the tool-call refusal. The mode and the mask settings are not saved to disk and start as `redact` with the mask on and recording mode off whenever Claude Code starts; whether `/clear` keeps the current mode has not been verified by the maintainer (run `/pdpa-guard` with no argument, or look at the status line, to see the current mode). `/pdpa-blur off` turns the on-screen mask off, and `/pdpa-blur` with no argument toggles it. To turn off the whole mod, run `claude plugin disable pdpa-thai@boombignose-mods`.
 
 **Harmless text was redacted (a false positive). What should I do?**
 
@@ -284,4 +284,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT
 
 ## Original repository
 
-This project is published only at https://github.com/Boom-Vitt/claude-mods-boombignose and through the `claude-mods-boombignose` marketplace added from it. Forks, mirrors and re-uploads elsewhere are not maintained by this project's maintainer; review the code before installing from any other source.
+This project is published only at https://github.com/Boom-Vitt/boombignose-mods and through the `boombignose-mods` marketplace added from it. Forks, mirrors and re-uploads elsewhere are not maintained by this project's maintainer; review the code before installing from any other source.

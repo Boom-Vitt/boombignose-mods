@@ -8,8 +8,8 @@ body:
         **ห้ามแปะข้อมูลส่วนบุคคลจริง** (เลขประจำตัวประชาชน เบอร์โทร อีเมล ฯลฯ) ลงใน issue นี้ ให้ใช้ข้อมูลสมมติที่ให้ผลเหมือนกัน
         **Never paste real personal data** into this issue. Use fake values that reproduce the same behaviour.
 
-        วิธีหลบเลี่ยงตัวป้องกันได้อย่างสม่ำเสมอถือเป็นช่องโหว่ ให้รายงานแบบส่วนตัวตาม [SECURITY.md](https://github.com/Boom-Vitt/claude-mods-boombignose/blob/main/SECURITY.md) แทนการเปิด issue นี้
-        A technique that reliably slips data past the guard is a vulnerability: report it privately as described in [SECURITY.md](https://github.com/Boom-Vitt/claude-mods-boombignose/blob/main/SECURITY.md), not here.
+        วิธีหลบเลี่ยงตัวป้องกันได้อย่างสม่ำเสมอถือเป็นช่องโหว่ ให้รายงานแบบส่วนตัวตาม [SECURITY.md](https://github.com/Boom-Vitt/boombignose-mods/blob/main/SECURITY.md) แทนการเปิด issue นี้
+        A technique that reliably slips data past the guard is a vulnerability: report it privately as described in [SECURITY.md](https://github.com/Boom-Vitt/boombignose-mods/blob/main/SECURITY.md), not here.
   - type: dropdown
     id: mod
     attributes:

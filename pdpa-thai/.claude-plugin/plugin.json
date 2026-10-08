@@ -7,7 +7,7 @@
     "url": "https://github.com/Boom-Vitt"
   },
   "license": "MIT",
-  "homepage": "https://github.com/Boom-Vitt/claude-mods-boombignose",
-  "repository": "https://github.com/Boom-Vitt/claude-mods-boombignose",
+  "homepage": "https://github.com/Boom-Vitt/boombignose-mods",
+  "repository": "https://github.com/Boom-Vitt/boombignose-mods",
   "types": "./types/index.d.ts"
 }

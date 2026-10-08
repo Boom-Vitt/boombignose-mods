@@ -198,7 +198,7 @@ pdpa-thai (เวอร์ชัน 0.3.0) เป็นมอด (mod) ของ
 | ข้อมูลและประกาศจาก PDPC | [pdpc.or.th](https://www.pdpc.or.th/) |
 | ร้องเรียนเรื่องข้อมูลส่วนบุคคล | [complaint.pdpc.or.th](https://complaint.pdpc.or.th/) |
 | สอบถามข้อกฎหมาย | [consult.pdpc.or.th](https://consult.pdpc.or.th/) |
-| แจ้งปัญหาหรือข้อผิดพลาดของ pdpa-thai | [GitHub Issues](https://github.com/Boom-Vitt/claude-mods-boombignose/issues) |
+| แจ้งปัญหาหรือข้อผิดพลาดของ pdpa-thai | [GitHub Issues](https://github.com/Boom-Vitt/boombignose-mods/issues) |
 | รายงานช่องโหว่ของ pdpa-thai | ทำตาม [SECURITY.md](../SECURITY.md) โดยรายงานแบบส่วนตัวผ่านตัวเลือก **Report a vulnerability** ของ GitHub หากตัวเลือกนั้นแสดงอยู่ หากไม่แสดง ให้ใช้ช่องทางสำรองที่ระบุไว้ในเอกสารนั้น |
 
 โปรดอย่าใส่ข้อมูลส่วนบุคคลจริงใน issue สาธารณะ ให้ใช้ข้อมูลสมมติที่อธิบายรูปแบบแทน
@@ -250,4 +250,4 @@ pdpa-thai (เวอร์ชัน 0.3.0) เป็นมอด (mod) ของ
 - **บทลงโทษ ค่าปรับ และกำหนดเวลา** ไม่อยู่ในขอบเขตของเอกสารนี้โดยเจตนา
 - **การจัดการข้อมูลของผู้ให้บริการโมเดล** (Anthropic หรือแพลตฟอร์มคลาวด์ที่ตั้งค่าให้ Claude Code ใช้) เช่น สถานที่ประมวลผล ระยะเวลาเก็บรักษา และการนำไปใช้ ไม่อยู่ในเอกสารนี้ โปรดตรวจข้อกำหนดของผู้ให้บริการและข้อตกลงขององค์กร
 
-หากพบข้อความที่ไม่ถูกต้องหรือแหล่งข้อมูลที่ล้าสมัย โปรดแจ้งผ่าน [GitHub Issues](https://github.com/Boom-Vitt/claude-mods-boombignose/issues)
+หากพบข้อความที่ไม่ถูกต้องหรือแหล่งข้อมูลที่ล้าสมัย โปรดแจ้งผ่าน [GitHub Issues](https://github.com/Boom-Vitt/boombignose-mods/issues)
