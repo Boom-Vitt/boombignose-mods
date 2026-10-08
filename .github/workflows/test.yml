@@ -38,6 +38,7 @@ jobs:
         run: |
           npm install -g @openai/codex
           export CODEX_HOME="$RUNNER_TEMP/codex"
+          mkdir -p "$CODEX_HOME"
           codex plugin marketplace add "$PWD"
           codex plugin add boom-big-nose-workflow@boombignose-mods
           codex plugin list | grep -q boom-big-nose-workflow
