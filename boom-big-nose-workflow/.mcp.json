@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "perplexity": {
+      "type": "http",
+      "url": "https://api.perplexity.ai/mcp"
+    }
+  }
+}

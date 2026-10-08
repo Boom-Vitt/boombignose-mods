@@ -1,6 +1,6 @@
 # claude-mods-boombignose
 
-Mods for Claude Code: a guard that helps reduce the personal data sent to the model (`pdpa-thai`), a context usage bar (`context-bar`) and an agents side pane (`agents-panel`).
+Mods for Claude Code: a guard that helps reduce the personal data sent to the model (`pdpa-thai`), a context usage bar (`context-bar`), an agents side pane (`agents-panel`) and a multi-agent workflow (`boom-big-nose-workflow`).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-1F7A4D?style=flat-square)](LICENSE)
 [![tests](https://img.shields.io/github/actions/workflow/status/Boom-Vitt/claude-mods-boombignose/test.yml?branch=main&style=flat-square&label=tests)](https://github.com/Boom-Vitt/claude-mods-boombignose/actions/workflows/test.yml)
@@ -20,7 +20,7 @@ Everything in a Claude Code conversation is sent to the model: what you type, fi
 
 `pdpa-thai` looks for common Thai and international personal data formats inside the Claude Code process and replaces each detected value with a placeholder before Claude Code sends the conversation. It is designed to help reduce risk. Installing it does not make an organisation compliant with Thailand's Personal Data Protection Act B.E. 2562 (2019) (PDPA) or any other law, and it does not replace a review by a qualified person.
 
-The other two mods are general productivity tools and have nothing to do with the PDPA.
+The other mods are general productivity tools and have nothing to do with the PDPA.
 
 ## Install
 
@@ -31,6 +31,7 @@ claude plugin marketplace add Boom-Vitt/claude-mods-boombignose
 claude plugin install pdpa-thai@claude-mods-boombignose
 claude plugin install context-bar@claude-mods-boombignose
 claude plugin install agents-panel@claude-mods-boombignose
+claude plugin install boom-big-nose-workflow@claude-mods-boombignose
 ```
 
 Each mod works on its own; install only the ones you want.
@@ -58,6 +59,7 @@ claude plugin uninstall pdpa-thai@claude-mods-boombignose
 | `pdpa-thai` | 0.3.0 | `/pdpa-guard [redact\|block\|off]`, `/pdpa-blur [on\|off\|record]` | Redacts personal data it detects before it is sent to Claude, and masks it on screen (hover to reveal; in recording mode hovering does not reveal it) |
 | `context-bar` | 0.4.0 | `/context-bar` | A bar above the prompt showing context window use by category and the time left on the prompt cache |
 | `agents-panel` | 0.1.0 | `/agents-panel` | A side pane listing project, user and plugin agents, each with a run button |
+| `boom-big-nose-workflow` | 0.4.0 | `/orca-plan`, `/orca-review`, `/orca-merge` and the other `/orca-*` commands | The Orca workflow: one worktree per feature, planner, implementer, integrator and reviewer agents, merge through a gate ([README](boom-big-nose-workflow/README.md#english), [diagram](boom-big-nose-workflow/docs/workflow-diagram.md)) |
 
 `/context-bar` and `/agents-panel` toggle on and off. `/pdpa-blur` toggles too, or takes `on`, `off` or `record`. `/pdpa-guard` takes a mode name.
 
@@ -180,6 +182,7 @@ The sensitive categories follow section 26 of the Personal Data Protection Act B
 
 - Detection and redaction run inside the Claude Code process: on your machine for a local session, or wherever a cloud or remote session runs. In a cloud or remote session the original values are already on that machine before the mod runs; the mod only changes what is sent from there to the model.
 - `pdpa-thai` and `context-bar` make no network, external process, model or MCP calls of their own. `agents-panel` starts a subagent (`$.agent.spawn`) only when you press `▶ run`; that subagent runs like any other agent.
+- `boom-big-nose-workflow` has no hook code. Its commands run its own scripts (git, node, `claude mcp list`, and `gh` for the `/orca-doctor` sign-in check and `/orca-merge --apply --pr`) and start planner, implementer, integrator and reviewer subagents, which run like any other agent. It also adds two remote MCP servers, Context7 (`https://mcp.context7.com/mcp`) and Perplexity (`https://api.perplexity.ai/mcp`, sign-in required); queries the agents send to a connected server go to that service.
 - On every push and pull request, CI runs two local-only checks: a text search of every mod's hook code for network, process, model and MCP calls and for `fetch(`, and a check that every engine call on the `calls:` line printed by `claude plugin validate pdpa-thai` is a state, ui, clock or command call. Neither check proves anything about other mods or about Claude Code itself. Both checks, and what they miss, are described in one place: [What CI runs](CONTRIBUTING.md#what-ci-runs).
 - The redacted conversation is still sent to your configured model provider (Anthropic by default, or for example Amazon Bedrock or Google Cloud Vertex AI), like any Claude Code conversation.
 - This mod does not change how your configured model provider (Anthropic by default) stores, retains or uses what it receives; that is set by your agreement and settings with that provider.

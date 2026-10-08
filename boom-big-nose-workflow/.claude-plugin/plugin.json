@@ -1,0 +1,13 @@
+{
+  "name": "boom-big-nose-workflow",
+  "version": "0.4.0",
+  "description": "Orca multi-agent workflow for Claude Code: planner, implementer, integrator and reviewer agents; one git worktree per feature with port/env/DB isolation; a lint/typecheck/test + reviewer gate before merge; dry-run merge and cleanup scripts; Context7 and Perplexity MCP (both optional, with web search fallback).",
+  "author": {
+    "name": "Boom-Vitt",
+    "url": "https://github.com/Boom-Vitt"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/Boom-Vitt/claude-mods-boombignose",
+  "repository": "https://github.com/Boom-Vitt/claude-mods-boombignose",
+  "keywords": ["orca", "workflow", "multi-agent", "worktree", "review-gate", "mcp", "context7", "perplexity"]
+}
