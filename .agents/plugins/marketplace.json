@@ -1,0 +1,20 @@
+{
+  "name": "boombignose-mods",
+  "interface": {
+    "displayName": "boombignose mods"
+  },
+  "plugins": [
+    {
+      "name": "boom-big-nose-workflow",
+      "source": {
+        "source": "local",
+        "path": "./boom-big-nose-workflow"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Coding"
+    }
+  ]
+}

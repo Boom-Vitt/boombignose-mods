@@ -36,6 +36,13 @@ claude plugin install boom-big-nose-workflow@boombignose-mods
 
 Each mod works on its own; install only the ones you want.
 
+In Codex, only `boom-big-nose-workflow` is available, because the other mods rely on Claude Code-only features:
+
+```bash
+codex plugin marketplace add Boom-Vitt/boombignose-mods
+codex plugin add boom-big-nose-workflow@boombignose-mods
+```
+
 Update to the latest version:
 
 ```bash

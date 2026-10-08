@@ -33,4 +33,11 @@ jobs:
           bad=$(echo "$calls" | tr ',' '\n' | sed -E 's/^ *\$\.([a-z]+).*/\1/' | sort -u | grep -vxE 'state|ui|clock|command' || true)
           [ -z "$bad" ] || { echo "::error::pdpa-thai calls outside state, ui, clock, command: $bad"; exit 1; }
       - name: JSON manifests parse
-        run: for f in .claude-plugin/*.json */.claude-plugin/plugin.json */hooks/hooks.json; do python3 -m json.tool "$f" > /dev/null; done
+        run: for f in .claude-plugin/*.json .agents/plugins/*.json */.claude-plugin/plugin.json */.codex-plugin/plugin.json */hooks/hooks.json; do python3 -m json.tool "$f" > /dev/null; done
+      - name: Codex install
+        run: |
+          npm install -g @openai/codex
+          export CODEX_HOME="$RUNNER_TEMP/codex"
+          codex plugin marketplace add "$PWD"
+          codex plugin add boom-big-nose-workflow@boombignose-mods
+          codex plugin list | grep -q boom-big-nose-workflow
