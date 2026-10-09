@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-10-08
-- **Deciders:** Boom + Orca workflow maintainers
+- **Deciders:** Boom + BBN workflow maintainers
 
 ## Context
 

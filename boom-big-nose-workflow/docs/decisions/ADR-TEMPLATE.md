@@ -2,7 +2,7 @@
 
 - **Status:** Proposed | Accepted | Superseded | Deprecated
 - **Date:** YYYY-MM-DD
-- **Deciders:** Orca / human / roles involved
+- **Deciders:** BBN / human / roles involved
 
 ## Context
 

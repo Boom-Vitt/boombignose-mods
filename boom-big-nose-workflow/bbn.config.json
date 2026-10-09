@@ -1,0 +1,136 @@
+{
+  "$schema": "./bbn.config.schema.json",
+  "version": "0.5.0",
+  "budgets": {
+    "maxParallelAgents": 4,
+    "maxParallelWorktrees": 6,
+    "perRole": {
+      "bbn-orchestrator": {
+        "maxTurns": 150
+      },
+      "claude-code": {
+        "maxTurns": 40
+      },
+      "codex": {
+        "maxTurns": 40
+      },
+      "bbn-reviewer": {
+        "maxTurns": 25
+      }
+    },
+    "softTokenHintPerAgent": 80000,
+    "hardStopOnRepeatedFailures": 3,
+    "stopConditions": [
+      "acceptance_criteria_met",
+      "review_gate_passed",
+      "budget_exhausted",
+      "user_abort",
+      "plan_rejected"
+    ]
+  },
+  "planValidation": {
+    "required": true,
+    "checkpointBeforeFanOut": true,
+    "allowReplan": true,
+    "minAcceptanceChecks": 1,
+    "planFile": ".bbn/plan.json"
+  },
+  "reviewGate": {
+    "requiredBeforeMerge": true,
+    "requireReviewerApproval": true,
+    "checks": [
+      "lint",
+      "typecheck",
+      "test"
+    ],
+    "rerunAfterConflictResolution": true,
+    "reReviewWhenPatchChanges": true,
+    "stepTimeoutSec": 1800
+  },
+  "merge": {
+    "rebaseOnBaseBeforeMerge": true,
+    "baseCandidates": [
+      "origin/dev",
+      "origin/main",
+      "dev",
+      "main",
+      "master"
+    ],
+    "dryRunDefault": true,
+    "conflictOwner": "codex",
+    "neverForcePush": true,
+    "pushBase": false,
+    "draftPr": true,
+    "deleteBranchRequiresFlag": true
+  },
+  "isolation": {
+    "uniqueDevPort": true,
+    "portBase": 3100,
+    "portRange": 800,
+    "envWorktreeFile": ".env.worktree",
+    "dbBranchPerWorktree": true,
+    "dbBranchPrefix": "wt-",
+    "migrationOrdering": "base-first-then-feature",
+    "forbidSharedWritableDb": true
+  },
+  "mcpRouting": {
+    "perplexity": {
+      "roles": [
+        "bbn-orchestrator"
+      ],
+      "useFor": [
+        "planning",
+        "research",
+        "external_facts"
+      ],
+      "optional": true,
+      "auth": "oauth",
+      "fallback": [
+        "WebSearch",
+        "WebFetch"
+      ]
+    },
+    "context7": {
+      "roles": [
+        "claude-code",
+        "codex",
+        "bbn-reviewer"
+      ],
+      "useFor": [
+        "library_docs",
+        "api_reference",
+        "implementation"
+      ],
+      "optional": true,
+      "auth": "none",
+      "fallback": [
+        "WebFetch"
+      ]
+    }
+  },
+  "queue": {
+    "order": [
+      "dependsOn",
+      "ready",
+      "baseConflicts",
+      "pairConflicts",
+      "overlaps",
+      "diffLines"
+    ],
+    "predictConflicts": true
+  },
+  "ledger": {
+    "enabled": true,
+    "file": "runs.jsonl",
+    "recordAgentRuns": true
+  },
+  "automation": {
+    "planApproval": "reviewer",
+    "merge": "local"
+  },
+  "codex": {
+    "model": "gpt-6.1-sol",
+    "reasoningEffort": "xhigh",
+    "timeoutSec": 3600
+  }
+}

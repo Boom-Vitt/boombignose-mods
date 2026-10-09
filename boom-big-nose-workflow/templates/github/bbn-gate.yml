@@ -1,0 +1,28 @@
+# BBN gate on pull requests. Copy to <repo>/.github/workflows/bbn-gate.yml
+# and copy scripts/bbn-gate.sh + scripts/lib/bbn-common.sh to <repo>/.github/scripts/ (same layout).
+name: bbn-gate
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        if: hashFiles('package.json') != ''
+        with: { node-version: "22" }
+      - name: Install dependencies
+        if: hashFiles('package.json') != ''
+        run: |
+          if [ -f pnpm-lock.yaml ]; then corepack enable && pnpm install --frozen-lockfile
+          elif [ -f yarn.lock ]; then corepack enable && yarn install --immutable
+          elif [ -f package-lock.json ]; then npm ci
+          else npm install; fi
+      # Flutter projects: add a Flutter setup step of your choice here before the gate.
+      - name: BBN gate (lint + typecheck + test)
+        run: bash .github/scripts/bbn-gate.sh --no-record
