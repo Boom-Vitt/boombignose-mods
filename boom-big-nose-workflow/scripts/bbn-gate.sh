@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck source-path=SCRIPTDIR
 # BBN review gate: lint + typecheck + test. Exit 0 pass, 1 fail, 2 nothing ran.
-# Override with BBN_GATE_CMD="..." or an executable .bbn/gate.sh at the repo root.
+# Override with BBN_GATE_CMD="..." or .bbn/gate.sh at the repo root (a non-executable gate.sh fails the gate).
 # Records the result for the current HEAD in <git-dir>/bbn/gate.json unless --no-record.
 # Each step is limited to BBN_GATE_TIMEOUT seconds (default reviewGate.stepTimeoutSec, 1800); a timeout fails the step.
 set -uo pipefail
@@ -55,6 +55,8 @@ if [ -n "${BBN_GATE_CMD:-}" ]; then
   run_step custom bash -c "$BBN_GATE_CMD"
 elif [ -x .bbn/gate.sh ]; then
   run_step custom ./.bbn/gate.sh
+elif [ -e .bbn/gate.sh ]; then
+  bbn_log ".bbn/gate.sh is not executable: chmod +x .bbn/gate.sh"; run_step custom false
 elif [ -f pubspec.yaml ]; then
   if command -v flutter >/dev/null 2>&1; then
     run_step analyze flutter analyze

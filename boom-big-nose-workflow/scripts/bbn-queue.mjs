@@ -22,7 +22,7 @@ function mergeTree(a, b) {   // -> list of conflicted files ([] = clean)
   if (r.code === 1) return r.out.split('\n').slice(1).filter(Boolean);
   return [`(merge-tree failed: exit ${r.code})`];
 }
-const patchId = (mb, head) => execSync(`git diff ${mb} ${head} | git patch-id --stable`, { encoding: 'utf8' }).split(' ')[0].trim();
+const patchId = (mb, head) => execSync(`git diff ${mb} ${head} | git patch-id --verbatim`, { encoding: 'utf8' }).split(' ')[0].trim();
 
 const items = [];
 for (const w of wts.slice(1)) {

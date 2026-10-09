@@ -300,6 +300,47 @@
           "type": "boolean"
         }
       }
+    },
+    "automation": {
+      "type": "object",
+      "description": "How far bbn-run.mjs goes without asking. planApproval: reviewer = bbn-reviewer approves the plan, user = wait for you. merge: local = merge into the local base when approved, ask = wait for you.",
+      "properties": {
+        "planApproval": {
+          "enum": [
+            "reviewer",
+            "user"
+          ]
+        },
+        "merge": {
+          "enum": [
+            "local",
+            "ask"
+          ]
+        }
+      }
+    },
+    "codex": {
+      "type": "object",
+      "description": "Real Codex CLI used by bbn-codex.sh (BBN_CODEX_MODEL / BBN_CODEX_EFFORT override).",
+      "properties": {
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reasoningEffort": {
+          "enum": [
+            "minimal",
+            "low",
+            "medium",
+            "high",
+            "xhigh"
+          ]
+        },
+        "timeoutSec": {
+          "type": "integer",
+          "minimum": 60
+        }
+      }
     }
   }
 }

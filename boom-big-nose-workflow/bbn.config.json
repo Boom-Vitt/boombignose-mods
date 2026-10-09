@@ -1,15 +1,12 @@
 {
   "$schema": "./bbn.config.schema.json",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "budgets": {
     "maxParallelAgents": 4,
     "maxParallelWorktrees": 6,
     "perRole": {
       "bbn-orchestrator": {
-        "maxTurns": 60
-      },
-      "grok-build": {
-        "maxTurns": 25
+        "maxTurns": 150
       },
       "claude-code": {
         "maxTurns": 40
@@ -79,8 +76,7 @@
   "mcpRouting": {
     "perplexity": {
       "roles": [
-        "bbn-orchestrator",
-        "grok-build"
+        "bbn-orchestrator"
       ],
       "useFor": [
         "planning",
@@ -127,5 +123,14 @@
     "enabled": true,
     "file": "runs.jsonl",
     "recordAgentRuns": true
+  },
+  "automation": {
+    "planApproval": "reviewer",
+    "merge": "local"
+  },
+  "codex": {
+    "model": "gpt-6.1-sol",
+    "reasoningEffort": "xhigh",
+    "timeoutSec": 3600
   }
 }

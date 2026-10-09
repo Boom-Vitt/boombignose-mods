@@ -23,6 +23,17 @@ Based on Keep a Changelog, with date headings and per-mod headings; each mod is 
   claude plugin install pdpa-thai@boombignose-mods
   ```
 
+### boom-big-nose-workflow 0.5.0
+
+- **ทำงานอัตโนมัติ (มีการเปลี่ยนที่ไม่เข้ากับของเดิม)** บอกเป้าหมายด้วยภาษาปกติก็พอ ไม่ต้องพิมพ์คำสั่ง `/` skill `bbn-workflow` จะเริ่มเอง วางแผน แจกงานให้ agent ตรวจผล รีวิว merge เข้า base ในเครื่อง และตรวจ base ซ้ำหลัง merge ครบ โดยไม่ push ขั้นที่เป็นกลไกทำโดย harness ตัวใหม่ `scripts/bbn-run.mjs` ถ้าอยากให้ถามก่อน ตั้ง `automation` ใน `bbn.config.json`
+- **แบ่งรุ่นโมเดล** hub ใช้ Claude Opus 5.5 (effort max) ผู้รีวิวใช้ Claude Opus 5.5 (effort high) และขอความเห็นจาก Codex เพิ่ม `claude-code` ใช้ Claude Sonnet 5.5 ส่วน `codex` ใช้ Claude Haiku 5.5 สั่งงาน Codex CLI ตัวจริง (`gpt-6.1-sol`, reasoning `xhigh`) ผ่าน `scripts/bbn-codex.sh`
+- **รีวิวละเอียดขึ้น** ใช้ `git patch-id --verbatim` (ต้องใช้ git 2.39 ขึ้นไป) การแก้แค่ช่องว่างก็ต้องรีวิวใหม่ branch ที่อนุมัติไว้ตั้งแต่ 0.4 จะถูกรีวิวอีกรอบ และแก้ปัญหาที่ Codex รีวิวเจอ เช่น ชื่อ base ที่มีอักขระของ shell, option ที่ไม่ใส่ค่าแล้ววนไม่จบ, stream ที่รอ dependency
+- **ลบ** agent `grok-build` แล้ว การวางแผนและค้นข้อมูลย้ายไปอยู่ที่ hub รายละเอียดอยู่ใน [boom-big-nose-workflow/CHANGELOG.md](boom-big-nose-workflow/CHANGELOG.md)
+- **Autopilot (breaking)** describe the goal in plain words, no `/` commands: the `bbn-workflow` skill starts on its own, plans, dispatches the agents, checks, reviews, merges into the local base and verifies the base afterwards, without pushing. The new harness `scripts/bbn-run.mjs` does the mechanical steps. Set `automation` in `bbn.config.json` to be asked first.
+- **Model tiers** hub on Claude Opus 5.5 (effort max), reviewer on Claude Opus 5.5 (effort high) with a Codex second opinion, `claude-code` on Claude Sonnet 5.5, and `codex` on Claude Haiku 5.5 driving the real Codex CLI (`gpt-6.1-sol`, reasoning `xhigh`) through `scripts/bbn-codex.sh`.
+- **Stricter review** the fingerprint is `git patch-id --verbatim` (git 2.39+), so a whitespace-only change needs a new review; branches approved under 0.4 are reviewed once more. Also fixes from a Codex review: base names with shell characters, options without a value looping forever, approved streams waiting for their dependencies.
+- **Removed** the `grok-build` agent; the hub plans and researches. Details in [boom-big-nose-workflow/CHANGELOG.md](boom-big-nose-workflow/CHANGELOG.md).
+
 ### boom-big-nose-workflow 0.4.0
 
 - **เพิ่ม** มอด `boom-big-nose-workflow` (เวิร์กโฟลว์ BBN) เข้า marketplace นี้ ติดตั้งด้วย `claude plugin install boom-big-nose-workflow@boombignose-mods` พร้อมแผนภาพขั้นตอน `boom-big-nose-workflow/docs/workflow-diagram.md` รายละเอียดของแต่ละเวอร์ชันอยู่ใน [boom-big-nose-workflow/CHANGELOG.md](boom-big-nose-workflow/CHANGELOG.md)

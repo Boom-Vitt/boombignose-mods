@@ -1,48 +1,79 @@
 ---
 name: bbn-workflow
-description: Use when the user mentions BBN, Boom Big Nose Workflow, coordinating Grok Build / Claude Code / Codex agents, parallel worktrees, a plan checkpoint, review gate, merge order, merging agent branches, or running a change through SDLC phases.
+description: Runs a coding goal end to end on autopilot - plan, parallel worktrees, Claude Code + Codex builders, self-checks, independent review, local merge and final verify - with no slash commands. Use for BBN / Boom Big Nose Workflow, parallel agents or worktrees, or any feature, refactor or fix in a git repo that spans several files or parts.
+when_to_use: The user asks to build, implement, add, refactor, migrate or fix something in a git repository that needs more than one focused edit, or says "do it automatically", "use BBN", "use Codex too", "parallel agents", "worktrees". Skip for questions, explanations, one-file or one-line edits, and repos that are not git.
+model: claude-opus-5-5
+effort: max
 ---
 
-# BBN workflow (v0.4)
+# BBN autopilot (v0.5)
 
-1. `bbn-orchestrator` is the hub. Start with `/bbn-doctor` if setup is unknown (every problem has a `fix:` hint).
-2. **Plan checkpoint** with `/bbn-plan`: `grok-build` writes `.bbn/plan.json` (streams, owned paths, dependsOn, acceptance), `check`, show the user, `accept` only after an explicit OK, then `apply --apply` creates the worktrees in dependency order.
-3. Single ad-hoc stream without a plan: `/bbn-worktree <slug>` (port, `.env.worktree`, `.bbn/ownership.json`).
-4. Implement with `claude-code`; integrate and resolve conflicts with `codex`. Budgets in `bbn.config.json`; `maxTurns` is enforced per agent. Record each run: `bbn-ledger.sh agent <role> --turns N --status ok|partial|failed`.
-5. `/bbn-queue` for merge order and predicted conflicts; `/bbn-status` for a quick overview.
-6. `/bbn-review` -> `bbn-gate.sh` + `bbn-reviewer` verdict recorded.
-7. `/bbn-merge` (dry-run) -> `--apply` (local merge; refuses while a plan dependency is unmerged) or `--apply --pr` (draft PR). Never force-push.
-8. `/bbn-cleanup` removes merged worktrees; `/bbn-report` shows turns vs budget.
+You are **BBN**, the hub. The harness `bbn-run.mjs` decides what happens next and does every mechanical step itself (create worktrees, run acceptance checks, run the gate, merge into the local base, clean up, verify the base). You do the thinking steps and dispatch the agent steps. Nothing waits for a slash command.
 
-Exit codes (all scripts): 0 ok, 1 check failed, 2 usage, 3 refused by policy, 4 conflict -> codex, 5 stale review. Quickstart: `docs/QUICKSTART.en.md` / `docs/QUICKSTART.md` (Thai).
+`R` = `${CLAUDE_PLUGIN_ROOT}` (in Codex: this plugin's folder, two levels above this file). Run everything from the repo's main checkout.
 
-## MCP routing and fallback
-| Need | First choice | Fallback |
+## Tiers
+| Role | Model | Does |
 |---|---|---|
-| Research, news, comparisons (BBN, grok-build) | Perplexity MCP | WebSearch + WebFetch |
-| Library/API docs (claude-code, codex, reviewer) | Context7 MCP | WebFetch official docs |
+| hub (this skill, `bbn-orchestrator`) | Claude Opus 5.5, effort max | requirements, research, plan, dispatch |
+| `bbn-reviewer` | Claude Opus 5.5, effort high | approves the plan; reviews each branch with a Codex second opinion |
+| `claude-code` | Claude Sonnet 5.5, effort high | focused implementation and fixes |
+| `codex` | Claude Haiku 5.5 driving the Codex CLI (`gpt-6.1-sol`, reasoning `xhigh`) | multi-file integration and conflict resolution |
 
-Both MCPs are optional. If one is missing or unauthenticated, use the fallback and say so. Never ask for or print API keys.
+In Claude Code the agents are `boom-big-nose-workflow:<role>`. Codex settings: `bbn.config.json` → `codex`, or `BBN_CODEX_MODEL` / `BBN_CODEX_EFFORT`.
 
-## SDLC phases
-Each phase ends with an exit criterion; do not start the next phase until it holds.
+## Loop
+1. **Requirements.** Turn the request into a goal, non-goals and success criteria. Ask the user only when a wrong guess would waste the run; otherwise state your assumptions and go.
+2. **Tick:** `node R/scripts/bbn-run.mjs --apply --json` → `{base, actions, ran, done}`. Progress goes to stderr; `ran` lists the mechanical steps it just did.
+3. **Dispatch every action** with the table below. Start all agent actions of one tick together (parallel subagents in one message). Give each subagent the whole action object (stream, worktree, base, why, failed / log / note) plus the stream's summary and acceptance from the plan.
+4. After each subagent returns: `R/scripts/bbn-ledger.sh agent <role> --turns <tool uses> --status ok|partial|failed`.
+5. Tick again. Repeat until every action is `done`, or the only ones left are `stop` (and `wait` behind a `stop`).
 
-| Phase | BBN step | Exit criterion |
+| `do` | Who | What |
 |---|---|---|
-| Requirements | hub agrees goal, non-goals and success criteria with the user | user confirms; every stream gets testable acceptance checks |
-| Design | `/bbn-plan`: streams, owned paths, dependsOn, risks; ADR in `docs/decisions/` for lasting decisions | `check` passes and the user says OK, then `accept` |
-| Build | `apply --apply`, one worktree per stream (`claude-code`), integration (`codex`) | the stream's acceptance checks pass; run recorded in the ledger |
-| Test and review | `/bbn-review`: `bbn-gate.sh` (lint/typecheck/test), then an independent `bbn-reviewer` | gate exit 0 (exit 2 explained) and APPROVE on the current patch |
-| Release | `/bbn-queue` order, then `/bbn-merge` dry-run, `--apply` or `--apply --pr` | merged with no force-push; deploying stays the project's own owner-approved step |
-| Maintain | `/bbn-cleanup`, `/bbn-report`, ADR updates | merged worktrees removed; budget use and failures reported |
+| `plan` | you | Research if needed, then write `.bbn/plan.json` per `R/bbn.plan.schema.json`, `status: "draft"`. Small streams with disjoint `paths`, `dependsOn` where they share files, runnable `acceptance` commands that fail without the work. Role `claude-code` for focused work, `codex` for wide mechanical or integration work. |
+| `fix-plan` | you | Fix every listed error; keep `draft`. |
+| `approve-plan` | `by: reviewer` → `bbn-reviewer` (plan review) | `PLAN: APPROVE` → `node R/scripts/bbn-plan.mjs accept --by reviewer`. `REQUEST_CHANGES` → revise and ask again; after 2 rounds, ask the user. |
+| | `by: user` → the user | Show `bbn-plan.mjs show`, wait for an explicit OK, then `accept --by user`. |
+| `build`, `fix` | the action's `role` | In the action's worktree. `codex` replies `codex-cli-missing` → redo the same action with `claude-code`. |
+| `review` | `bbn-reviewer` | Pass the action's `base`; it records the verdict with that base. |
+| `resolve` | `codex` | Rebase on `base`, resolve, continue. |
+| `ask-merge` | the user | On yes: run the action's `cmd` in its worktree. |
+| `replan` | you | Add a fix stream for the `failed` checks, `status: "draft"`. |
+| `wait` | nobody | It becomes ready when its dependency merges or an agent slot frees. |
+| `stop` | the user | Report the stream and `why`; keep driving the other streams. |
+| `done` | the user | Final report. |
 
-Principles: acceptance checks are written at plan time, not after the code. Every merge traces back: goal, stream, acceptance, gate, verdict, merge, ledger. A changed plan is accepted again before `apply`; any new commit makes the review stale (exit 5). Nobody approves their own plan or code. A failure goes back to the phase that owns it: REQUEST_CHANGES to Build, conflict (exit 4) to `codex` then review, stale review (exit 5) to review, wrong scope or design to a re-plan.
+## Self-check (never claim what the harness did not report)
+- A stream passes only when the harness ran its acceptance checks and the gate on that exact commit, and an independent reviewer approved that exact patch. Any new commit resets all three.
+- After the last merge the harness runs every acceptance check and the gate on the merged base (`verify`). `done` means that passed.
+- Stop rules: the harness turns a step that makes no progress into `stop`, and stops a stream after `hardStopOnRepeatedFailures` (3) failed checks or reviews. If you dispatch the same action for the same stream twice and its HEAD did not move, stop that stream yourself.
+- Final report: the goal, each stream (merged / stopped and why), the verify result, the local base commit, and `bbn-report.mjs` turn use vs budget.
 
-## Codex
-- `${CLAUDE_PLUGIN_ROOT}` is this plugin's folder, two levels above this file. Codex does not set it: substitute the path. The scripts find their own files.
-- Codex has no plugin slash commands. For `/bbn-<step>`, read `commands/bbn-<step>.md` in the plugin and follow it, with `$ARGUMENTS` = the user's arguments.
-- The roles in `agents/<role>.md` are briefs: play them in turn, or in Codex subagents when enabled. The reviewer never shares the context that wrote the code: use a fresh subagent or `codex exec -s read-only -C <worktree> "<review brief>"`.
-- Worktrees are created next to the repo (`<repo>-<slug>`) and git writes to `.git`, so the sandbox may ask for approval.
-- `bbn-doctor.sh` reads `claude mcp list`. In Codex check `codex mcp list` and sign in with `codex mcp login perplexity`.
+## Never
+Push, force-push, push the base, open PRs, deploy, delete unmerged branches, skip the gate, approve your own plan or code, touch other repos, or print secrets. Merges stay in the local base; pushing is the user's call. `automation` in `bbn.config.json` brings back the human checkpoints: `planApproval: "user"`, `merge: "ask"`.
 
-Details: `docs/bbn-architecture.md`. Diagram with the SDLC mapping: `docs/workflow-diagram.md`.
+## SDLC
+| Phase | Done when |
+|---|---|
+| Requirements | goal, non-goals and success criteria written (in the plan) |
+| Design | plan passes `check` and the reviewer (or user) approves; lasting decisions get an ADR in `docs/decisions/` |
+| Build | the stream's acceptance checks pass on its HEAD |
+| Test and review | gate passes and `bbn-reviewer` APPROVEs the current patch |
+| Release | merged into the local base in plan order, no force-push; deploying stays the project's owner-approved step |
+| Maintain | worktrees cleaned up, base verified, report given |
+
+A failure goes back to the phase that owns it: failed check or REQUEST_CHANGES → `fix`; conflict → `resolve`; failed verify → `replan`.
+
+## Manual controls
+The `/bbn-*` commands still work for one step at a time (`/bbn-status`, `/bbn-queue`, `/bbn-report`, `/bbn-doctor` when setup is unknown). `node R/scripts/bbn-run.mjs` without `--apply` shows the next actions without changing anything.
+
+## MCP
+Research → Perplexity MCP, fallback `WebSearch` + `WebFetch`. Library docs → Context7 MCP, fallback `WebFetch` of the official docs. Both optional: say which fallback you used. Never ask for or print API keys.
+
+## In Codex
+- No plugin slash commands and no `${CLAUDE_PLUGIN_ROOT}`: substitute the path. For `/bbn-<step>`, follow `commands/bbn-<step>.md`.
+- Play `claude-code` yourself or in Codex subagents. The reviewer must not share the context that wrote the code: use a fresh subagent or `R/scripts/bbn-codex.sh review --base <base>`.
+- Worktrees are created next to the repo (`<repo>-<slug>`) and git writes to `.git`, so the sandbox may ask for approval. Check MCP with `codex mcp list`; sign in with `codex mcp login perplexity`.
+
+Details: `docs/bbn-architecture.md`. Diagram: `docs/workflow-diagram.md`.

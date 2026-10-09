@@ -55,6 +55,9 @@ expect_code "gate pass (BBN_GATE_CMD=true)" 0 env BBN_GATE_CMD=true "$S/bbn-gate
 grep -q '"result": "pass"' "$(git rev-parse --absolute-git-dir)/bbn/gate.json" && ok "gate.json recorded in git dir" || bad "gate.json"
 expect_code "gate fail (BBN_GATE_CMD=false)" 1 env BBN_GATE_CMD=false "$S/bbn-gate.sh" --no-record
 expect_code "gate empty project -> 2" 2 "$S/bbn-gate.sh" --no-record
+mkdir -p .bbn && printf '#!/bin/sh\nexit 0\n' > .bbn/gate.sh
+expect_code "gate: non-executable .bbn/gate.sh -> 1" 1 "$S/bbn-gate.sh" --no-record
+rm .bbn/gate.sh
 if command -v npm >/dev/null 2>&1; then
   mkdir -p "$T/js" && cd "$T/js" && git init -q .
   printf '{"name":"t","version":"1.0.0","scripts":{"lint":"node -e 0","test":"node -e process.exit(1)"}}\n' > package.json
@@ -118,7 +121,7 @@ echo "$out" | grep -qi 'pplx-' && bad "doctor leaked a key-like value" || ok "do
 mkdir -p "$T/oldgit"; REALGIT="$(command -v git)"
 printf '#!/bin/sh\nif [ "$1" = "--version" ]; then echo "git version 2.30.1"; else exec "%s" "$@"; fi\n' "$REALGIT" > "$T/oldgit/git"; chmod +x "$T/oldgit/git"
 out="$(PATH="$T/oldgit:$PATH" "$S/bbn-doctor.sh" --offline 2>&1)"
-echo "$out" | grep -q 'WARN  git 2.30.1 is older than 2.38' && ok "doctor warns on git < 2.38 (merge-tree)" || bad "doctor git version" "$out"
+echo "$out" | grep -q 'FAIL  git 2.30.1 is older than 2.39' && ok "doctor fails on git < 2.39 (patch-id --verbatim)" || bad "doctor git version" "$out"
 
 
 # ===== v0.4.0 =====
@@ -159,7 +162,7 @@ if command -v node >/dev/null 2>&1; then
   expect_code "plan init refuses overwrite" 3 node "$S/bbn-plan.mjs" init
   expect_code "plan template valid" 0 node "$S/bbn-plan.mjs" check
   for qs in QUICKSTART.md QUICKSTART.en.md; do
-    awk '/^```json$/{f=1;next} /^```$/{f=0} f' "$S/../docs/$qs" > "$T/qs-plan.json"
+    awk '/^```json$/{f=1;next} /^```$/{if (f) exit} f' "$S/../docs/$qs" > "$T/qs-plan.json"
     expect_code "docs/$qs example plan passes check" 0 node "$S/bbn-plan.mjs" check --file "$T/qs-plan.json"
   done
   [ -z "$(git status --porcelain)" ] && ok ".bbn/plan.json is git-excluded" || bad "plan visible to git" "$(git status --porcelain)"
@@ -207,6 +210,40 @@ out="$("$CP/scripts/bbn-doctor.sh" --offline 2>&1)"; rc=$?
 if command -v node >/dev/null 2>&1; then
   awk 'NR==2{print "tools: Read, Bash"}1' "$CP/agents/codex.md" > "$CP/x" && mv "$CP/x" "$CP/agents/codex.md"
   expect_code "config check rejects tools: allowlist (MCP hidden)" 1 node "$CP/scripts/bbn-config-check.mjs"
+fi
+
+# --- codex wrapper + harness/plan argument guards ---
+cd "$T/app" || exit 1
+expect_code "codex: CLI missing -> 3 (hand to claude-code)" 3 env PATH=/usr/bin:/bin "$S/bbn-codex.sh" run "x"
+expect_code "codex: usage -> 2" 2 "$S/bbn-codex.sh" nope
+expect_code "codex: --base without a value -> 2" 2 env PATH="$T/stub:$PATH" "$S/bbn-codex.sh" review --base
+expect_code "status: --base without a value -> 2 (no endless loop)" 2 "$S/bbn-status.sh" --base
+expect_code "status: base with shell characters refused" 2 "$S/bbn-status.sh" --base 'main;id'
+mkdir -p "$T/norepo"
+expect_code "codex: outside a git repo -> 2" 2 env GIT_CEILING_DIRECTORIES="$T" bash -c 'cd "$1" && exec "$2" review' _ "$T/norepo" "$S/bbn-codex.sh"
+mkdir -p "$T/stub"
+cat > "$T/stub/codex" <<'STUB'
+#!/bin/sh
+out=""; prev=""
+for a in "$@"; do [ "$prev" = "-o" ] && out="$a"; prev="$a"; done
+[ "${STUB_FAIL:-0}" = 1 ] && { echo boom >&2; exit 1; }
+printf '%s\n' "$*" > "$out"
+STUB
+chmod +x "$T/stub/codex"
+out="$(PATH="$T/stub:$PATH" "$S/bbn-codex.sh" run "add the thing" 2>/dev/null)"; rc=$?
+[ "$rc" = 0 ] && echo "$out" | grep -q -- '-s workspace-write' && echo "$out" | grep -q -- '-m gpt-6.1-sol' \
+  && echo "$out" | grep -q 'model_reasoning_effort=xhigh' && echo "$out" | grep -q 'Do not commit, push' && echo "$out" | grep -q 'add the thing' \
+  && ok "codex run: model, effort, sandbox and guard passed to the CLI" || bad "codex run (exit $rc)" "$out"
+out="$(PATH="$T/stub:$PATH" BBN_CODEX_MODEL=m2 "$S/bbn-codex.sh" review --base main 2>/dev/null)"; rc=$?
+[ "$rc" = 0 ] && echo "$out" | grep -q -- '-s read-only' && echo "$out" | grep -q -- '-m m2' && echo "$out" | grep -q 'VERDICT: APPROVE' \
+  && ok "codex review: read-only, env model override, asks for a VERDICT" || bad "codex review (exit $rc)" "$out"
+expect_code "codex: CLI failure -> 1" 1 env PATH="$T/stub:$PATH" STUB_FAIL=1 "$S/bbn-codex.sh" run "x"
+grep -q '"event":"codex","branch":"[^"]*","mode":"run","result":"fail"' "$(git rev-parse --git-common-dir)/bbn/runs.jsonl" \
+  && ok "codex runs recorded in the ledger" || bad "codex ledger"
+if command -v node >/dev/null 2>&1; then
+  expect_code "run: unknown argument -> 2" 2 node "$S/bbn-run.mjs" --bogus
+  expect_code "queue: base with shell characters refused" 2 node "$S/bbn-queue.mjs" --base 'x$(id)'
+  expect_code "plan accept --by rejects unknown approver" 2 node "$S/bbn-plan.mjs" accept --by robot
 fi
 
 # --- exit codes documented for every script ---

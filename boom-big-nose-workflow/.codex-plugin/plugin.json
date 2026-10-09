@@ -1,7 +1,7 @@
 {
   "name": "boom-big-nose-workflow",
-  "version": "0.4.0",
-  "description": "BBN multi-agent workflow for Codex and Claude Code: a plan checkpoint, one git worktree per feature with port/env/DB isolation, a lint/typecheck/test + reviewer gate before merge, dry-run merge and cleanup scripts, SDLC phases with exit criteria; Context7 and Perplexity MCP (both optional, with web search fallback).",
+  "version": "0.5.0",
+  "description": "BBN multi-agent autopilot for Codex and Claude Code: a reviewed plan, one git worktree per feature with port/env/DB isolation, a lint/typecheck/test + reviewer gate before merge, dry-run merge and cleanup scripts, SDLC phases with exit criteria; Context7 and Perplexity MCP (both optional, with web search fallback).",
   "author": {
     "name": "Boom-Vitt",
     "url": "https://github.com/Boom-Vitt"
@@ -14,13 +14,14 @@
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "BBN workflow",
-    "shortDescription": "Plan, build in worktrees, gate, review and merge",
-    "longDescription": "Turns a goal into an accepted plan, isolated git worktrees per stream, a lint/typecheck/test gate plus a recorded review verdict, and a dry-run-first merge that never force-pushes. Each SDLC phase has an exit criterion before the next one starts.",
+    "shortDescription": "Autopilot: plan, build in worktrees, check, review, merge",
+    "longDescription": "Turns a goal into a reviewed plan, then drives it with the bbn-run.mjs harness: isolated git worktrees per stream, a lint/typecheck/test gate plus a recorded review verdict, a local merge in plan order and a final verify of the base. It never pushes. Each SDLC phase has an exit criterion before the next one starts.",
     "developerName": "Boom-Vitt",
     "category": "Coding",
     "capabilities": ["Read", "Write"],
     "websiteURL": "https://github.com/Boom-Vitt/boombignose-mods",
     "defaultPrompt": [
+      "Build this with BBN on autopilot.",
       "Plan this goal with BBN and wait for my OK.",
       "Run the BBN review gate on this branch.",
       "Show the BBN merge order and predicted conflicts."

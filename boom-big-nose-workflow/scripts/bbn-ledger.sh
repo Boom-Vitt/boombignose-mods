@@ -18,9 +18,9 @@ case "${1:-}" in
     turns=""; status=ok; note=""
     while [ $# -gt 0 ]; do
       case "$1" in
-        --turns) turns="${2:-}"; shift 2 ;;
-        --status) status="${2:-}"; shift 2 ;;
-        --note) note="${2:-}"; shift 2 ;;
+        --turns) bbn_need_val "$@"; turns="$2"; shift 2 ;;
+        --status) bbn_need_val "$@"; status="$2"; shift 2 ;;
+        --note) bbn_need_val "$@"; note="$2"; shift 2 ;;
         *) bbn_die "unknown arg: $1" 2 ;;
       esac
     done

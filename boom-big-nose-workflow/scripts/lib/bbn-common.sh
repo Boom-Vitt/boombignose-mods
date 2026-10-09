@@ -4,9 +4,11 @@
 bbn_log()  { printf '[%s] %s\n' "${BBN_TAG:-bbn}" "$*"; }
 bbn_warn() { printf '[%s] WARN: %s\n' "${BBN_TAG:-bbn}" "$*" >&2; }
 bbn_die()  { printf '[%s] ERROR: %s\n' "${BBN_TAG:-bbn}" "$1" >&2; exit "${2:-1}"; }
+# In an option loop: bbn_need_val "$@" before reading $2 (a bare `shift 2` with one arg left loops forever).
+bbn_need_val() { [ "$#" -ge 2 ] || bbn_die "$1 needs a value" 2; }
 
 bbn_require_repo() {
-  git rev-parse --is-inside-work-tree >/dev/null 2>&1 || bbn_die "not inside a git repo"
+  git rev-parse --is-inside-work-tree >/dev/null 2>&1 || bbn_die "not inside a git repo" 2
 }
 
 # Per-worktree state lives inside the worktree's own git dir, never in the work tree.
@@ -21,6 +23,7 @@ bbn_state_dir() {
 bbn_pick_base() {
   local override="${1:-${BBN_BASE:-}}" ref
   if [ -n "$override" ]; then
+    case "$override" in *[!A-Za-z0-9._/-]*) bbn_die "base '$override' must be a plain branch name" 2 ;; esac
     git rev-parse --verify --quiet "$override" >/dev/null || bbn_die "base '$override' not found"
     printf '%s' "$override"; return
   fi
@@ -30,12 +33,13 @@ bbn_pick_base() {
   bbn_die "no base branch found (tried origin/dev origin/main dev main master)"
 }
 
-# Stable fingerprint of the branch's changes relative to base (ignores line numbers),
-# so a review survives a clean rebase but not a content change.
+# Fingerprint of the branch's changes relative to base. It ignores line numbers, so a review survives a
+# clean rebase, but not whitespace (--verbatim, git 2.39+): indentation can change what code does.
 bbn_patch_id() {
-  local base="$1" mb
+  local base="$1" mb out
   mb="$(git merge-base "$base" HEAD)" || return 1
-  git diff "$mb" HEAD | git patch-id --stable | awk '{print $1}'
+  out="$(git diff "$mb" HEAD | git patch-id --verbatim)" || { bbn_warn "git patch-id --verbatim failed (needs git 2.39+)"; return 1; }
+  printf '%s' "${out%% *}"
 }
 
 bbn_now() { date -u +%Y-%m-%dT%H:%M:%SZ; }

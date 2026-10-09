@@ -16,10 +16,10 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --apply) APPLY=1; shift ;;
     --pr) PR=1; shift ;;
-    --base) BASE_ARG="${2:-}"; shift 2 ;;
+    --base) bbn_need_val "$@"; BASE_ARG="$2"; shift 2 ;;
     --allow-empty-gate) ALLOW_EMPTY=1; shift ;;
     --ignore-order) IGNORE_ORDER=1; shift ;;
-    -h|--help) sed -n '2,9p' "$0"; exit 0 ;;
+    -h|--help) sed -n '3,8p' "$0"; exit 0 ;;
     *) bbn_die "unknown arg: $1" 2 ;;
   esac
 done
@@ -28,7 +28,7 @@ bbn_require_repo
 branch="$(git rev-parse --abbrev-ref HEAD)"
 bbn_protected_branch "$branch" && bbn_die "on '$branch': run from the feature branch worktree" 3
 git fetch --quiet origin 2>/dev/null || bbn_warn "fetch failed; using local refs"
-base="$(bbn_pick_base "$BASE_ARG")"
+base="$(bbn_pick_base "$BASE_ARG")" || exit
 base_local="${base#origin/}"
 sd="$(bbn_state_dir)"
 review="$sd/review.json"
@@ -61,7 +61,8 @@ if [ "$APPLY" -eq 0 ]; then
 fi
 
 [ -n "$refuse" ] && { bbn_ledger merge result=refused "reason=$refuse"; bbn_die "refusing: $refuse" 3; }
-[ "$(bbn_patch_id "$base")" = "$reviewed_patch" ] \
+pid="$(bbn_patch_id "$base")" || bbn_die "cannot fingerprint the branch" 1
+[ "$pid" = "$reviewed_patch" ] \
   || { bbn_ledger merge result=stale_review; bbn_die "changes differ from what was reviewed (new commits since review). Re-run /bbn-review." 5; }
 
 if [ $need_rebase -eq 1 ]; then
@@ -75,7 +76,7 @@ if [ $need_rebase -eq 1 ]; then
 fi
 git merge-base --is-ancestor "$base" HEAD || bbn_die "branch still not based on $base" 3
 
-now_patch="$(bbn_patch_id "$base")"
+now_patch="$(bbn_patch_id "$base")" || bbn_die "cannot fingerprint the branch" 1
 if [ "$now_patch" != "$reviewed_patch" ]; then
   bbn_die "changes differ from what was reviewed (new commits or conflict edits). Re-run /bbn-review." 5
 fi
@@ -118,7 +119,9 @@ if ! git -C "$base_wt" merge --no-ff --no-edit -m "Merge $branch (bbn gate + rev
   bbn_die "merge conflict on $base_local; aborted. Hand to codex, then /bbn-review again." 4
 fi
 cleanup_tmp
-bbn_ledger merge result=merged "base=$base_local"
+# The plan stream merged here, so a later plan that reuses the slug is not taken as merged.
+stream="$(node "$HERE/bbn-plan.mjs" stream-id --branch "$branch" 2>/dev/null)" || stream=""
+bbn_ledger merge result=merged "base=$base_local" "head=$(git rev-parse HEAD)" "stream=$stream"
 bbn_log "merged $branch into local $base_local at $(git rev-parse --short "refs/heads/$base_local")"
 bbn_log "not pushed. To publish: git push origin $base_local (never --force)"
 bbn_log "afterwards: /bbn-cleanup to remove the merged worktree"

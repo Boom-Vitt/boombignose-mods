@@ -8,10 +8,10 @@ BBN_TAG=bbn-status
 . "$(cd "$(dirname "$0")" && pwd)/lib/bbn-common.sh"
 BASE_ARG=""
 while [ $# -gt 0 ]; do
-  case "$1" in --base) BASE_ARG="${2:-}"; shift 2 ;; -h|--help) sed -n '2,4p' "$0"; exit 0 ;; *) bbn_die "unknown arg: $1" 2 ;; esac
+  case "$1" in --base) bbn_need_val "$@"; BASE_ARG="$2"; shift 2 ;; -h|--help) sed -n '2,4p' "$0"; exit 0 ;; *) bbn_die "unknown arg: $1" 2 ;; esac
 done
 bbn_require_repo
-base="$(bbn_pick_base "$BASE_ARG")"
+base="$(bbn_pick_base "$BASE_ARG")" || exit
 echo "base: $base ($(git rev-parse --short "$base"))"
 printf '%-34s %-10s %-9s %-6s %-14s %s\n' BRANCH AHEAD/BEH DIRTY GATE REVIEW WORKTREE
 

@@ -4,20 +4,22 @@
 #   --apply             actually remove (clean worktrees only; never --force)
 #   --delete-branches   also delete merged local branches with git branch -d (never -D, never remote)
 #   --include-unmerged  also remove clean worktrees of UNMERGED branches (branch itself is kept)
+#   --branch <name>     only this branch's worktree (repeatable; bbn-run.mjs limits cleanup to its plan)
 #   --base <ref>
 set -uo pipefail
 BBN_TAG=bbn-cleanup
 . "$(cd "$(dirname "$0")" && pwd)/lib/bbn-common.sh"
-APPLY=0; DELB=0; UNMERGED=0; BASE_ARG=""
+APPLY=0; DELB=0; UNMERGED=0; BASE_ARG=""; ONLY=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --apply) APPLY=1; shift ;; --delete-branches) DELB=1; shift ;;
-    --include-unmerged) UNMERGED=1; shift ;; --base) BASE_ARG="${2:-}"; shift 2 ;;
-    -h|--help) sed -n '2,7p' "$0"; exit 0 ;; *) bbn_die "unknown arg: $1" 2 ;;
+    --include-unmerged) UNMERGED=1; shift ;; --base) bbn_need_val "$@"; BASE_ARG="$2"; shift 2 ;;
+    --branch) bbn_need_val "$@"; ONLY="$ONLY $2 "; shift 2 ;;
+    -h|--help) sed -n '2,8p' "$0"; exit 0 ;; *) bbn_die "unknown arg: $1" 2 ;;
   esac
 done
 bbn_require_repo
-base="$(bbn_pick_base "$BASE_ARG")"; base_local="${base#origin/}"
+base="$(bbn_pick_base "$BASE_ARG")" || exit; base_local="${base#origin/}"
 main_wt="$(git worktree list --porcelain | awk '/^worktree /{print substr($0,10); exit}')"
 here="$(git rev-parse --show-toplevel)"
 bbn_log "base=$base mode=$([ $APPLY -eq 1 ] && echo APPLY || echo DRY-RUN)"
@@ -34,6 +36,7 @@ while IFS="$(printf '\t')" read -r wt br; do
   [ -n "$wt" ] || continue
   [ "$wt" = "$main_wt" ] && continue
   bbn_protected_branch "$br" && continue
+  if [ -n "$ONLY" ]; then case "$ONLY" in *" $br "*) ;; *) continue ;; esac; fi
   if [ "$wt" = "$here" ]; then bbn_log "skip $br: current worktree ($wt)"; continue; fi
   if [ ! -d "$wt" ]; then bbn_log "stale entry $wt (prune)"; continue; fi
   if ! bbn_is_clean "$wt" || [ -n "$(git -C "$wt" ls-files --others --exclude-standard)" ]; then

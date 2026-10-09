@@ -10,7 +10,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 
 slug="${1:-}"; shift || true
 BASE_ARG=""
-while [ $# -gt 0 ]; do case "$1" in --base) BASE_ARG="${2:-}"; shift 2 ;; *) bbn_die "unknown arg: $1" 2 ;; esac; done
+while [ $# -gt 0 ]; do case "$1" in --base) bbn_need_val "$@"; BASE_ARG="$2"; shift 2 ;; *) bbn_die "unknown arg: $1" 2 ;; esac; done
 case "$slug" in
   ""|-*) echo "usage: worktree-new.sh <feature-slug> [--base <ref>]" >&2; exit 2 ;;
 esac
@@ -34,7 +34,7 @@ dest="$(dirname "$main_root")/$(basename "$main_root")-$slug"
 git rev-parse --verify --quiet "refs/heads/$branch" >/dev/null && bbn_die "branch $branch already exists" 3
 
 git fetch --quiet origin 2>/dev/null || true
-start="$(bbn_pick_base "$BASE_ARG")"
+start="$(bbn_pick_base "$BASE_ARG")" || exit
 # --no-track: a feature branch must not get origin/<base> as its upstream
 git worktree add --quiet --no-track -b "$branch" "$dest" "$start"
 

@@ -19,13 +19,14 @@ have() { command -v "$1" >/dev/null 2>&1; }
 echo "tools"
 if have git; then
   gv="$(git --version | awk '{print $3}')"
-  # /bbn-queue needs `git merge-tree --write-tree` (git 2.38+)
-  if printf '%s\n' "$gv" | awk -F. '{exit !($1 > 2 || ($1 == 2 && $2 >= 38))}'; then ok "git $gv"
-  else warn "git $gv is older than 2.38: /bbn-queue cannot predict conflicts"; fix "brew install git"; fi
+  # reviews and merges fingerprint patches with `git patch-id --verbatim` (git 2.39+)
+  if printf '%s\n' "$gv" | awk -F. '{exit !($1 > 2 || ($1 == 2 && $2 >= 39))}'; then ok "git $gv"
+  else fail "git $gv is older than 2.39: reviews and merges need git patch-id --verbatim"; fix "brew install git"; fi
 else fail "git not found"; fix "install git (xcode-select --install or brew install git)"; fi
 if have gh; then
   if gh auth status >/dev/null 2>&1; then ok "gh authenticated"; else warn "gh not authenticated (only /bbn-merge --pr needs it)"; fix "gh auth login"; fi
 else warn "gh not installed (only /bbn-merge --pr needs it)"; fix "brew install gh"; fi
+if have codex; then ok "codex $(codex --version 2>/dev/null | awk '{print $NF}')"; else warn "codex CLI not on PATH: the codex role hands its streams to claude-code"; fix "npm install -g @openai/codex, then codex login"; fi
 if have claude; then ok "claude $(claude --version 2>/dev/null | awk '{print $1}')"; else warn "claude CLI not on PATH"; fi
 if have node; then ok "node $(node --version)"; else warn "node not found: config check, /bbn-plan, /bbn-queue, /bbn-report need it"; fix "brew install node"; fi
 if have shellcheck; then ok "shellcheck $(shellcheck --version | awk '/^version/{print $2}')"; else ok "shellcheck not installed (optional, for development)"; fi
@@ -33,7 +34,7 @@ if have shellcheck; then ok "shellcheck $(shellcheck --version | awk '/^version/
 echo "plugin"
 ok "root $ROOT"
 missing=0
-for s in bbn-gate.sh bbn-merge.sh bbn-review-record.sh bbn-status.sh bbn-cleanup.sh bbn-ledger.sh worktree-new.sh bbn-plan.mjs bbn-queue.mjs bbn-report.mjs; do
+for s in bbn-gate.sh bbn-merge.sh bbn-review-record.sh bbn-status.sh bbn-cleanup.sh bbn-ledger.sh bbn-codex.sh worktree-new.sh bbn-plan.mjs bbn-run.mjs bbn-queue.mjs bbn-report.mjs; do
   [ -x "$HERE/$s" ] || { fail "scripts/$s missing or not executable"; missing=1; }
 done
 if [ "$missing" -eq 1 ]; then fix "chmod +x \"$HERE\"/*.sh \"$HERE\"/*.mjs"; else ok "scripts executable"; fi
