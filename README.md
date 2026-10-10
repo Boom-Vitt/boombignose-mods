@@ -66,7 +66,7 @@ claude plugin uninstall pdpa-thai@boombignose-mods
 | `pdpa-thai` | 0.3.0 | `/pdpa-guard [redact\|block\|off]`, `/pdpa-blur [on\|off\|record]` | ปกปิดข้อมูลส่วนบุคคลที่ตรวจพบก่อนส่งให้ Claude และพรางข้อมูลบนหน้าจอ (วางเมาส์เพื่อดู หรือวางเมาส์แล้วไม่แสดงค่าจริงในโหมดบันทึกหน้าจอ) |
 | `context-bar` | 0.4.0 | `/context-bar` | แถบเหนือช่องพิมพ์ แสดงการใช้ context window แยกตามหมวด และเวลาที่เหลือของ prompt cache |
 | `agents-panel` | 0.1.0 | `/agents-panel` | แผงด้านข้างแสดง agent ของโปรเจกต์ ของผู้ใช้ และของปลั๊กอิน พร้อมปุ่มเรียกใช้ |
-| `boom-big-nose-workflow` | 0.5.0 | ไม่ต้องใช้คำสั่ง (บอกเป้าหมายได้เลย) หรือ `/bbn-plan`, `/bbn-review`, `/bbn-merge` และคำสั่ง `/bbn-*` อื่น | เวิร์กโฟลว์ BBN แบบอัตโนมัติ: บอกเป้าหมายเป็นภาษาธรรมดา แล้ว Claude Opus/Sonnet/Haiku กับ Codex CLI วางแผน แยก worktree ต่อ stream เขียนโค้ด รีวิว และ merge เข้า base ในเครื่องผ่าน gate โดยไม่ต้องพิมพ์ slash command ([README](boom-big-nose-workflow/README.md), [แผนภาพ](boom-big-nose-workflow/docs/workflow-diagram.md)) |
+| `boom-big-nose-workflow` | 0.6.0 | ไม่ต้องใช้คำสั่ง (บอกเป้าหมายได้เลย) หรือ `/bbn-plan`, `/bbn-review`, `/bbn-merge` และคำสั่ง `/bbn-*` อื่น | เวิร์กโฟลว์ BBN แบบอัตโนมัติ: บอกเป้าหมายเป็นภาษาธรรมดา แล้ว Claude Opus/Sonnet/Haiku กับ Codex CLI วางแผน แยก worktree ต่อ stream เขียนโค้ด รีวิว และ merge เข้า base ในเครื่องผ่าน gate โดยไม่ต้องพิมพ์ slash command ([README](boom-big-nose-workflow/README.md), [แผนภาพ](boom-big-nose-workflow/docs/workflow-diagram.md)) |
 
 `/context-bar` และ `/agents-panel` เป็นคำสั่งสลับเปิดและปิด `/pdpa-blur` สลับเปิดและปิดได้เช่นกัน หรือรับ `on`, `off` หรือ `record` ส่วน `/pdpa-guard` รับชื่อโหมด
 

@@ -66,7 +66,7 @@ claude plugin uninstall pdpa-thai@boombignose-mods
 | `pdpa-thai` | 0.3.0 | `/pdpa-guard [redact\|block\|off]`, `/pdpa-blur [on\|off\|record]` | Redacts personal data it detects before it is sent to Claude, and masks it on screen (hover to reveal; in recording mode hovering does not reveal it) |
 | `context-bar` | 0.4.0 | `/context-bar` | A bar above the prompt showing context window use by category and the time left on the prompt cache |
 | `agents-panel` | 0.1.0 | `/agents-panel` | A side pane listing project, user and plugin agents, each with a run button |
-| `boom-big-nose-workflow` | 0.5.0 | none needed (just ask for the goal), or `/bbn-plan`, `/bbn-review`, `/bbn-merge` and the other `/bbn-*` commands | The BBN workflow on autopilot: describe a goal in plain words and Claude Opus/Sonnet/Haiku plus the Codex CLI plan it, build it in one worktree per stream, review it and merge it into your local base through a gate, with no slash commands needed ([README](boom-big-nose-workflow/README.md#english), [diagram](boom-big-nose-workflow/docs/workflow-diagram.md)) |
+| `boom-big-nose-workflow` | 0.6.0 | none needed (just ask for the goal), or `/bbn-plan`, `/bbn-review`, `/bbn-merge` and the other `/bbn-*` commands | The BBN workflow on autopilot: describe a goal in plain words and Claude Opus/Sonnet/Haiku plus the Codex CLI plan it, build it in one worktree per stream, review it and merge it into your local base through a gate, with no slash commands needed ([README](boom-big-nose-workflow/README.md#english), [diagram](boom-big-nose-workflow/docs/workflow-diagram.md)) |
 
 `/context-bar` and `/agents-panel` toggle on and off. `/pdpa-blur` toggles too, or takes `on`, `off` or `record`. `/pdpa-guard` takes a mode name.
 

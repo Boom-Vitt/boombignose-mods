@@ -2,6 +2,19 @@
 
 Based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); [SemVer](https://semver.org/). The repository-wide CHANGELOG.md summarises each release in Thai and English and links here.
 
+## 0.6.0 - 2026-10-11
+
+- **Added** a per-run integration branch `bbn/<slug(title)>-<hash6>`, named by `bbn-plan.mjs accept` (kept on a re-accept; a new name once its final merge happened) and created by the harness from the target. Streams branch from it and merge into it; the target (`main`) is untouched until the final review approves. The schema gains optional `integration`; a plan accepted under 0.5 must be accepted again. `bbn-plan.mjs apply` defaults its base to the integration branch.
+- **Added** the `final-review` action: after the last stream the harness cleans up, opens a final worktree on the integration branch, runs `verify` (acceptance checks, gate, paths check), and `bbn-reviewer` reviews the whole `target...integration` diff with a Codex second opinion, recording `bbn-review-record.sh VERDICT --base <target>`. APPROVE: one `bbn-merge.sh --apply --base <target> --no-rebase`. A moved target goes to `resolve` (`git merge <target>` into the integration branch, never rebase). REQUEST_CHANGES: `replan` adds a fix stream under a new slug and keeps the merged streams in the plan (the final paths check uses all of them). Stream actions carry `base` = integration; `final-review` carries `base` = target. See ADR-0004.
+- **Added** `bbn-merge.sh --no-rebase` (exit 4 when the base moved) and a base lock: a plan stream refuses any base but the integration branch (exit 3, `base-not-integration`, not skipped by `--ignore-order`).
+- **Added** `bbn-plan.mjs scan [--base R]`, a secret scan of the added lines of the net diff and of every commit (merge-conflict resolutions included, binary-looking files included) plus `.env*` files other than `.env.example`, `.env.sample`, `.env.template`. It prints `file:line pattern-name`, never the value; a line with `bbn-allow-secret` is skipped. Exit 0 clean, 3 hits, 2 usage or cannot scan. Octopus merges fail closed (`octopus-merge:0 unscanned`) and a patch over 64MB fails with exit 2 (`branch patch exceeds 64MB`). It runs in each stream's check (`secret-scan`) and in `bbn-merge.sh` before the gate, where any non-zero exit refuses the merge (exit 3).
+- **Added** path ownership: files outside a stream's `paths` come back as `fix` (`paths`), and `verify` applies the union of all streams' paths to the integration diff.
+- **Added** plan checks (`check`, `accept`, `apply`, harness `create`): an owned path that is gitignored with no tracked files, or that has untracked files in the main checkout, is an error.
+- **Changed** the acceptance checks re-run when a stream's acceptance commands or `paths` change, or when the integration head moves. `verify` and cleanup use the integration branch.
+- **Changed** `docs/exit-codes.md` (scan 0/2/3, `--no-rebase` exit 4, secret-scan refusal), the `codex` role (merge, never rebase, in the final worktree), `bbn-reviewer` (final review section), the orchestrator, the `bbn-workflow` skill, `/bbn-merge`, the workflow diagram, the architecture, and the READMEs and quickstarts.
+- **Known limitations** the plan check reads the main checkout's working tree, not the plan `base` branch: keep the main checkout's `.gitignore` in line with the base and use trailing slashes for directory paths. `maxParallelWorktrees` also counts merged streams, so a plan at the limit cannot add a fix stream after a final REQUEST_CHANGES: keep plans one stream under the limit. `integration === target` is not rejected yet.
+- **Out of scope** mechanical enforcement of reviewer independence; a maximum diff size beyond the 64MB scan buffer; scanning octopus merges.
+
 ## 0.5.0 - 2026-10-09
 
 - **Removed (breaking)** the `grok-build` agent. BBN, the hub, now plans and researches itself; `budgets.perRole.grok-build` is gone and Perplexity is routed to the hub only.

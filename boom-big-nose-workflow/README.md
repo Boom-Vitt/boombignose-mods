@@ -1,4 +1,4 @@
-# boom-big-nose-workflow (BBN) v0.5.0
+# boom-big-nose-workflow (BBN) v0.6.0
 
 [ไทย](#ไทย) · [English](#english)
 
@@ -31,7 +31,7 @@ codex login
 
 ### โหมดอัตโนมัติ
 
-ใน git repo บอกเป้าหมายที่แตะหลายไฟล์หรือหลายส่วน skill `bbn-workflow` จะเริ่มเอง (หรือเปิด session ด้วย `claude --agent boom-big-nose-workflow:bbn-orchestrator`) BBN เขียนแผน ให้ reviewer อนุมัติ แล้ววนเรียก harness `scripts/bbn-run.mjs` ซึ่งทำขั้นที่เป็นกลไกเองทั้งหมด: สร้าง worktree, รัน acceptance, รัน gate, merge เข้า base ในเครื่องตามลำดับในแผน, เก็บกวาด และตรวจ base ที่รวมแล้ว (`verify`) ส่วนงานที่ต้องคิดจะส่งให้ agent ตามตารางนี้
+ใน git repo บอกเป้าหมายที่แตะหลายไฟล์หรือหลายส่วน skill `bbn-workflow` จะเริ่มเอง (หรือเปิด session ด้วย `claude --agent boom-big-nose-workflow:bbn-orchestrator`) BBN เขียนแผน ให้ reviewer อนุมัติ แล้ววนเรียก harness `scripts/bbn-run.mjs` ซึ่งทำขั้นที่เป็นกลไกเองทั้งหมด: สร้าง worktree, รัน acceptance, รัน gate, merge แต่ละ stream เข้า integration branch ของรอบงาน (`bbn/<ชื่อ>-<hash6>`) ตามลำดับในแผน, เก็บกวาด, ตรวจ (`verify`) แล้วให้ reviewer รีวิว diff ทั้งก้อน (`final-review`) ก่อน merge เข้า base ในเครื่องครั้งเดียว ส่วนงานที่ต้องคิดจะส่งให้ agent ตามตารางนี้
 
 | บทบาท | โมเดล | หน้าที่ |
 |---|---|---|
@@ -39,6 +39,12 @@ codex login
 | `bbn-reviewer` | Claude Opus 5.5, effort high | อนุมัติแผน, รีวิวแต่ละ branch โดยมีความเห็นที่สองจาก Codex |
 | `claude-code` | Claude Sonnet 5.5, effort high | เขียนโค้ดและแก้งานที่ขอบเขตชัด |
 | `codex` | Claude Haiku 5.5 คุม Codex CLI | งานที่แตะหลายไฟล์และแก้ conflict |
+
+Base (เช่น `main`) ไม่ถูกแตะจนกว่า `final-review` จะ APPROVE ถ้า base ขยับระหว่างนั้น `codex` จะ merge base เข้า integration branch (ไม่ rebase) ถ้าผู้รีวิวขอแก้ แผนจะเพิ่ม fix stream ใต้ slug ใหม่โดยเก็บ stream ที่ merge แล้วไว้ในแผน
+
+ตัวป้องกันที่ harness บังคับ: ตรวจ secret (`bbn-plan.mjs scan`) บน diff และทุก commit รวมไฟล์ `.env*` (ข้ามบรรทัดที่มี `bbn-allow-secret`), ไฟล์ที่ stream แก้ต้องอยู่ใน `paths` ของมัน, plan ปฏิเสธ path ที่ถูก gitignore หรือยังไม่ได้ track, และ stream merge เข้าได้เฉพาะ integration branch
+
+ข้อจำกัดที่รู้อยู่: การตรวจไฟล์ของ plan อ่าน working tree ของ checkout หลัก ไม่ใช่ branch `base` ของแผน ให้ `.gitignore` ของ checkout หลักตรงกับ base และใช้ `/` ท้าย path ที่เป็นโฟลเดอร์; `maxParallelWorktrees` นับ stream ที่ merge แล้วด้วย แผนที่เต็มจำนวนพอดีจึงเพิ่ม fix stream หลัง REQUEST_CHANGES ไม่ได้ ให้เว้นไว้หนึ่ง stream; ยังไม่ปฏิเสธกรณี `integration === target`; นอกขอบเขต: บังคับความเป็นอิสระของ reviewer แบบกลไก, ขนาด diff สูงสุดเกินบัฟเฟอร์สแกน 64MB, การสแกน octopus merge
 
 ในโหมดนี้ BBN ไม่ push ไม่เปิด PR และไม่ deploy ถ้า stream ไหนไม่ผ่านการตรวจหรือรีวิวครบ 3 ครั้ง หรือขั้นไหนไม่คืบหน้า stream นั้นจะหยุด แล้ว BBN รายงานว่าหยุดเพราะอะไร ถ้าอยากให้หยุดถามก่อนอนุมัติแผนหรือก่อน merge ให้ตั้ง `automation` ใน `bbn.config.json` (`planApproval: "user"`, `merge: "ask"`) ดูล่วงหน้าโดยไม่เปลี่ยนอะไร: `node scripts/bbn-run.mjs` (ไม่ใส่ `--apply`)
 
@@ -64,7 +70,7 @@ Codex ไม่มี slash command ของปลั๊กอิน ให้�
 | `/bbn-status` | สถานะทุกสาขา: ahead/behind, gate/review, ไฟล์ที่ชนกัน |
 | `/bbn-queue` | ลำดับ merge: dependency ในแผน, พร้อมหรือยัง, ทำนายการชนด้วย `git merge-tree`, ขนาด (อ่านอย่างเดียว) |
 | `/bbn-review` | รัน gate + reviewer บันทึกคำตัดสิน |
-| `/bbn-merge` | dry-run เป็นค่าเริ่มต้น; `--apply` รวมเข้า base ท้องถิ่น (ปฏิเสธถ้า dependency ในแผนยังไม่ merge); `--apply --pr` เปิด draft PR |
+| `/bbn-merge` | dry-run เป็นค่าเริ่มต้น; `--apply` รวมเข้า base ท้องถิ่น (ปฏิเสธถ้า dependency ในแผนยังไม่ merge หรือ secret scan พบ; stream ของแผน merge ได้เฉพาะเข้า integration branch); `--no-rebase` ออกด้วย 4 แทนการ rebase เมื่อ base ขยับ; `--apply --pr` เปิด draft PR |
 | `/bbn-cleanup` | ลบ worktree ที่ merge แล้ว (dry-run เป็นค่าเริ่มต้น) |
 | `/bbn-report` | สรุปจาก ledger: gate/review/merge และ turn ที่แต่ละ agent ใช้เทียบงบ `maxTurns` |
 
@@ -117,7 +123,7 @@ shell จะแทนค่าคีย์ตอนรันคำสั่ง �
 - `docs/workflow-diagram.md` — แผนภาพขั้นตอนทั้งหมด ตั้งแต่วางแผนจนถึงตรวจ base ที่รวมแล้ว และหลักการ SDLC (เกณฑ์ผ่านของแต่ละเฟส)
 - `docs/bbn-architecture.md` — โครงสร้าง + mermaid + ประวัติจุดอ่อน→แก้
 - `docs/exit-codes.md` — exit code ของทุกสคริปต์
-- `docs/decisions/` — ADR
+- `docs/decisions/` — ADR (0004: integration branch and final review gate)
 - `CHANGELOG.md`
 
 ### ทดสอบสคริปต์
@@ -158,7 +164,7 @@ With it, the `codex` role hands multi-file work and conflict resolution to the C
 
 ### Autopilot
 
-In a git repo, ask for a goal that spans several files or parts and the `bbn-workflow` skill starts on its own (or start the session with `claude --agent boom-big-nose-workflow:bbn-orchestrator`). BBN writes the plan, has the reviewer approve it, then loops on the harness `scripts/bbn-run.mjs`, which does every mechanical step itself: create worktrees, run acceptance checks, run the gate, merge into the local base in plan order, clean up, and check the merged base (`verify`). The thinking steps go to these agents:
+In a git repo, ask for a goal that spans several files or parts and the `bbn-workflow` skill starts on its own (or start the session with `claude --agent boom-big-nose-workflow:bbn-orchestrator`). BBN writes the plan, has the reviewer approve it, then loops on the harness `scripts/bbn-run.mjs`, which does every mechanical step itself: create worktrees, run acceptance checks, run the gate, merge each stream into the run's integration branch (`bbn/<title>-<hash6>`) in plan order, clean up, check it (`verify`), have the reviewer review the whole diff (`final-review`), and only then make one merge into the local base. The thinking steps go to these agents:
 
 | Role | Model | Does |
 |---|---|---|
@@ -166,6 +172,12 @@ In a git repo, ask for a goal that spans several files or parts and the `bbn-wor
 | `bbn-reviewer` | Claude Opus 5.5, effort high | approves the plan; reviews each branch with a Codex second opinion |
 | `claude-code` | Claude Sonnet 5.5, effort high | focused implementation and fixes |
 | `codex` | Claude Haiku 5.5 driving the Codex CLI | multi-file integration and conflict resolution |
+
+The base (for example `main`) is untouched until `final-review` approves. If the base moved meanwhile, `codex` merges it into the integration branch (never a rebase). If the reviewer asks for changes, the plan gains a fix stream under a new slug and keeps the merged streams.
+
+Guardrails the harness enforces: a secret scan (`bbn-plan.mjs scan`) of the diff and every commit, including `.env*` files (a line with `bbn-allow-secret` is skipped; octopus merges fail closed as unscanned; a patch over 64MB fails with exit 2); a stream may only change files under its `paths`; the plan check rejects owned paths that are gitignored or untracked; and a stream can only merge into the integration branch.
+
+Known limitations: the plan's file checks read the main checkout's working tree, not the plan `base` branch, so keep the main checkout's `.gitignore` in line with the base and use trailing slashes for directory paths. `maxParallelWorktrees` also counts merged streams, so a plan at the limit cannot add a fix stream after a final REQUEST_CHANGES: keep plans one stream under it. `integration === target` is not rejected yet. Out of scope: mechanical reviewer-independence enforcement, a maximum diff size beyond the 64MB scan buffer, scanning octopus merges.
 
 In this mode BBN never pushes, opens PRs or deploys. A stream that fails its checks or review 3 times, or a step that makes no progress, stops, and BBN reports why. To be asked before the plan is approved or before each merge, set `automation` in `bbn.config.json` (`planApproval: "user"`, `merge: "ask"`). To preview without changing anything: `node scripts/bbn-run.mjs` (no `--apply`).
 
@@ -191,7 +203,7 @@ Autopilot does not need these, but they still show state or run one step at a ti
 | `/bbn-status` | Every branch: ahead/behind, gate/review, overlapping files |
 | `/bbn-queue` | Merge order: plan dependencies, readiness, conflicts predicted with `git merge-tree`, size (read-only) |
 | `/bbn-review` | Run the gate + reviewer and record the verdict |
-| `/bbn-merge` | Dry-run by default; `--apply` merges into the local base (refuses while a plan dependency is unmerged); `--apply --pr` opens a draft PR |
+| `/bbn-merge` | Dry-run by default; `--apply` merges into the local base (refuses while a plan dependency is unmerged or the secret scan finds something; a plan stream can only merge into the integration branch); `--no-rebase` exits 4 instead of rebasing when the base moved; `--apply --pr` opens a draft PR |
 | `/bbn-cleanup` | Remove merged worktrees (dry-run by default) |
 | `/bbn-report` | Ledger summary: gates/reviews/merges and turns each agent used vs its `maxTurns` budget |
 
@@ -244,7 +256,7 @@ Copy `scripts/bbn-gate.sh` + `scripts/lib/` into `<repo>/.github/scripts/` and `
 - `docs/workflow-diagram.md` — the whole workflow as one diagram, plan to the verified base, and the SDLC phases with their exit criteria
 - `docs/bbn-architecture.md` — structure, mermaid, weakness→fix history
 - `docs/exit-codes.md` — exit codes of every script
-- `docs/decisions/` — ADRs
+- `docs/decisions/` — ADRs (0004: integration branch and final review gate)
 - `CHANGELOG.md`
 
 ### Testing the scripts
