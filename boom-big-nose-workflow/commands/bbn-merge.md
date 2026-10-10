@@ -1,6 +1,6 @@
 ---
 description: Merge a reviewed BBN branch - dry-run by default; rebase, gate, review check; never force-push
-argument-hint: [--apply] [--pr] [--base <ref>]
+argument-hint: [--apply] [--pr] [--base <ref>] [--no-rebase]
 ---
 
 From the feature worktree, run `${CLAUDE_PLUGIN_ROOT}/scripts/bbn-merge.sh $ARGUMENTS`.

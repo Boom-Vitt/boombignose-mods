@@ -27,7 +27,7 @@ In Claude Code the agents are `boom-big-nose-workflow:<role>`. Codex settings: `
 
 ## Loop
 1. **Requirements.** Turn the request into a goal, non-goals and success criteria. Ask the user only when a wrong guess would waste the run; otherwise state your assumptions and go.
-2. **Tick:** `node R/scripts/bbn-run.mjs --apply --json` → `{base, actions, ran, done}`. Progress goes to stderr; `ran` lists the mechanical steps it just did.
+2. **Tick:** `node R/scripts/bbn-run.mjs --apply --json` → `{base, integration, actions, ran, done}`. Progress goes to stderr; `ran` lists the mechanical steps it just did.
 3. **Dispatch every action** with the table below. Start all agent actions of one tick together (parallel subagents in one message). Give each subagent the whole action object (stream, worktree, base, why, failed / log / note) plus the stream's summary and acceptance from the plan.
 4. After each subagent returns: `R/scripts/bbn-ledger.sh agent <role> --turns <tool uses> --status ok|partial|failed`.
 5. Tick again. Repeat until every action is `done`, or the only ones left are `stop` (and `wait` behind a `stop`).

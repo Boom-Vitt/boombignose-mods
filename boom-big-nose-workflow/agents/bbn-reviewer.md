@@ -30,8 +30,8 @@ Reply with `PLAN: APPROVE` or `PLAN: REQUEST_CHANGES` and a numbered fix list. Y
 
 ## Final review (action `final-review`, inside the final worktree)
 All streams are merged into the run's integration branch (`bbn/<title>-<hash6>`); `main` is untouched until you approve. The action carries `base` = the **target** (the plan base, e.g. `main`) and `integration`.
-1. Review the whole `git diff $(git merge-base <base> HEAD) HEAD` (target...integration), not one stream. Check the streams fit together, the goal is met, nothing is outside the streams' paths, and no secret or `.env*` file is in the range.
-2. The harness already ran every acceptance check, the gate and the paths check on the integration head (`verify`); read the result instead of rerunning.
+1. Review the whole `git diff $(git merge-base <base> HEAD) HEAD` (target...integration), not one stream. Check the streams fit together, the goal is met, nothing is outside the streams' paths, and no secret is in the range: no `.env*` file other than `.env.example`, `.env.sample` or `.env.template`, and check those templates for real values too.
+2. The harness already ran every acceptance check, the gate and the paths check on the integration head (`verify`); read the result in `<git-common-dir>/bbn/verify.json` instead of rerunning.
 3. Second opinion: `${CLAUDE_PLUGIN_ROOT}/scripts/bbn-codex.sh review --base <base>` (exit 3 = Codex CLI missing: say so, continue alone).
 4. Record from the final worktree, with the target as base: `${CLAUDE_PLUGIN_ROOT}/scripts/bbn-review-record.sh APPROVE|REQUEST_CHANGES|BLOCK --base <base> --note "<one line>"`.
    REQUEST_CHANGES makes the hub add a fix stream under a new slug (the merged streams stay in the plan); BLOCK stops the run for the user. APPROVE lets the harness make the one merge into the target.
