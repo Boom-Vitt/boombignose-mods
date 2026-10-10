@@ -25,6 +25,7 @@ case "${1:-}" in
       esac
     done
     case "$turns" in ''|*[!0-9]*) bbn_die "--turns <integer> required" 2 ;; esac
+    turns=$((10#$turns))
     case "$status" in ok|partial|failed) ;; *) bbn_die "--status must be ok, partial or failed" 2 ;; esac
     bbn_ledger agent "role=$role" "turns=$turns" "status=$status" "note=$note"
     bbn_log "recorded $role: $turns turns ($status)" ;;

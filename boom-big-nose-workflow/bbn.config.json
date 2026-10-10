@@ -1,6 +1,6 @@
 {
   "$schema": "./bbn.config.schema.json",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "budgets": {
     "maxParallelAgents": 4,
     "maxParallelWorktrees": 6,

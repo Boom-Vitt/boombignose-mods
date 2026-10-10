@@ -42,8 +42,9 @@ Perplexity ไม่บังคับ: `/mcp` -> `plugin:boom-big-nose-workflow
 2. **อนุมัติแผน** `bbn-reviewer` (Claude Opus) ตรวจแผนแล้วอนุมัติ หรือส่งกลับให้ hub พร้อมรายการที่ต้องแก้
 3. **สร้างงาน** harness (`scripts/bbn-run.mjs`) สร้าง worktree ให้ stream ละหนึ่งอันตามลำดับ dependency แล้ว `claude-code` (Claude Sonnet) หรือ `codex` (Codex CLI ที่ Claude Haiku คุม) ทำงานของ stream นั้นและ commit
 4. **ตรวจ** harness รัน acceptance ของ stream และ gate (lint/typecheck/test) บน commit นั้นตรง ๆ ถ้าไม่ผ่านจะส่งกลับให้คนทำแก้ (`fix`)
-5. **รีวิว** `bbn-reviewer` รีวิว branch โดยมีความเห็นที่สองจาก Codex ถ้า APPROVE harness จะ merge เข้า base **ในเครื่อง** ทีละ branch ตามลำดับในแผน ถ้าชนกัน `codex` จะแก้ แล้ว branch นั้นต้องผ่านการตรวจและรีวิวใหม่
-6. **ยืนยันผล** หลัง merge ตัวสุดท้าย harness ลบ worktree ที่ merge แล้ว และรัน acceptance ทุกข้อพร้อม gate บน base ที่รวมแล้ว จากนั้น BBN รายงานผลแต่ละ stream ผลการยืนยัน commit ของ base ในเครื่อง และ turn ที่ใช้เทียบงบ
+5. **รีวิว** `bbn-reviewer` รีวิว branch โดยมีความเห็นที่สองจาก Codex ถ้า APPROVE harness จะ merge เข้า **integration branch** ของรอบงาน (`bbn/<ชื่อ>-<hash6>`) ทีละ stream ตามลำดับในแผน (base ของคุณยังไม่ถูกแตะ) การตรวจรวมถึง secret scan และ "แก้เฉพาะไฟล์ใน path ของ stream" ถ้าชนกัน `codex` จะแก้ แล้ว branch นั้นต้องผ่านการตรวจและรีวิวใหม่
+6. **ยืนยันผล** หลัง stream สุดท้าย harness ลบ worktree ของ stream เปิด worktree สุดท้ายบน integration branch แล้วรัน acceptance ทุกข้อ gate และตรวจ path บน head ของ integration branch (ใน main checkout ถ้าอยู่บน branch นั้น ไม่งั้นใน worktree ชั่วคราว)
+7. **รีวิวขั้นสุดท้าย** `bbn-reviewer` (พร้อมความเห็นที่สองจาก Codex) รีวิว diff base...integration ทั้งก้อน (`final-review`) ถ้า APPROVE harness จะ merge เข้า base **ในเครื่อง** ครั้งเดียว (`--no-rebase` ถ้า base ขยับ `codex` จะ merge base เข้า integration branch ก่อน ไม่ rebase) ถ้า REQUEST_CHANGES แผนจะเพิ่ม fix stream ใต้ slug ใหม่ และ stream ที่ merge แล้วยังอยู่ในแผน จากนั้น BBN รายงานผลแต่ละ stream ผลการยืนยัน commit ของ base ในเครื่อง และ turn ที่ใช้เทียบงบ
 
 ระบบไม่ push อะไรเลย การ push เปิด PR และ deploy เป็นการตัดสินใจของคุณ ถ้า stream ไหนไม่ผ่านการตรวจหรือรีวิวครบ 3 ครั้ง หรือขั้นไหนไม่คืบหน้า stream นั้นจะหยุด BBN จะบอกว่าหยุดที่ stream ไหนเพราะอะไร แล้วทำ stream อื่นต่อ
 
@@ -128,8 +129,8 @@ BBN (hub) เขียนแผนลง `.bbn/plan.json` แบบเดีย�
 /bbn-merge checkout-api --apply    # rebase -> gate -> ตรวจ fingerprint -> merge เข้า base ในเครื่อง
 ```
 
-- exit 3: ถูกปฏิเสธ (ยังไม่ APPROVE, tree ไม่สะอาด, dependency ในแผนยังไม่ merge)
-- exit 4: ชนตอน rebase -> ส่งให้ `codex` แล้วรีวิวใหม่
+- exit 3: ถูกปฏิเสธ (ยังไม่ APPROVE, tree ไม่สะอาด, dependency ในแผนยังไม่ merge, secret scan พบ, stream ของแผนชี้ไป base อื่นที่ไม่ใช่ integration branch)
+- exit 4: ชนตอน rebase หรือ base ขยับเมื่อใช้ `--no-rebase` -> ส่งให้ `codex` แล้วรีวิวใหม่
 - exit 5: โค้ดเปลี่ยนหลังรีวิว -> รีวิวใหม่
 
 ไม่ push base และไม่ force-push ถ้าต้องการ PR: `--apply --pr` (draft)

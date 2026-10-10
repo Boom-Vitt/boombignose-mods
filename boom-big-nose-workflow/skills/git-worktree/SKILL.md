@@ -3,7 +3,7 @@ name: git-worktree
 description: Create or manage BBN git worktrees (one feature per worktree) with per-worktree port, env and DB isolation.
 ---
 
-# git worktree (BBN v0.5)
+# git worktree (BBN v0.6)
 
 ```bash
 ${CLAUDE_PLUGIN_ROOT}/scripts/worktree-new.sh <feature-slug> [--base <ref>]

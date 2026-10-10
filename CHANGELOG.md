@@ -23,6 +23,13 @@ Based on Keep a Changelog, with date headings and per-mod headings; each mod is 
   claude plugin install pdpa-thai@boombignose-mods
   ```
 
+### boom-big-nose-workflow 0.6.0
+
+- **branch รวมต่อรอบงานและรีวิวขั้นสุดท้าย** แต่ละ stream merge เข้า integration branch `bbn/<ชื่องาน>-<hash6>` ไม่ใช่เข้า base ตรง ๆ เมื่อครบแล้ว `bbn-reviewer` รีวิว diff ทั้งก้อน (`final-review`) พร้อมความเห็นที่สองจาก Codex ถ้า APPROVE จึง merge เข้า base ในเครื่องครั้งเดียว (`--no-rebase`) base จึงไม่ถูกแตะจนกว่าจะผ่านรีวิวสุดท้าย ถ้า base ขยับระหว่างนั้น `codex` จะ merge base เข้า integration branch ไม่ rebase แผนที่อนุมัติไว้ตั้งแต่ 0.5 ต้อง accept ใหม่หนึ่งครั้ง
+- **ตรวจความปลอดภัยเพิ่ม** `bbn-plan.mjs scan` หา secret ใน diff และทุก commit (รวมไฟล์ `.env*`) ตรวจว่าไฟล์ที่แก้อยู่ใน path ของ stream และ plan ปฏิเสธ path ที่ถูก gitignore หรือยังไม่ได้ track รายละเอียดและข้อจำกัดอยู่ใน [boom-big-nose-workflow/CHANGELOG.md](boom-big-nose-workflow/CHANGELOG.md)
+- **Integration branch and final review** each stream merges into an integration branch `bbn/<title>-<hash6>`, not the base. When all are in, `bbn-reviewer` reviews the whole diff (`final-review`) with a Codex second opinion, and only an APPROVE makes the one merge into the local base (`--no-rebase`), so the base is untouched until then. If the base moved, `codex` merges it into the integration branch (never rebases). Plans accepted under 0.5 must be accepted once more.
+- **More guardrails** `bbn-plan.mjs scan` looks for secrets in the diff and in every commit (including `.env*` files), a stream may only change files under its own paths, and the plan check rejects owned paths that are gitignored or untracked. Limitations and what is out of scope (reviewer-independence enforcement, diff size beyond the 64MB scan buffer): [boom-big-nose-workflow/CHANGELOG.md](boom-big-nose-workflow/CHANGELOG.md).
+
 ### boom-big-nose-workflow 0.5.0
 
 - **ทำงานอัตโนมัติ (มีการเปลี่ยนที่ไม่เข้ากับของเดิม)** บอกเป้าหมายด้วยภาษาปกติก็พอ ไม่ต้องพิมพ์คำสั่ง `/` skill `bbn-workflow` จะเริ่มเอง วางแผน แจกงานให้ agent ตรวจผล รีวิว merge เข้า base ในเครื่อง และตรวจ base ซ้ำหลัง merge ครบ โดยไม่ push ขั้นที่เป็นกลไกทำโดย harness ตัวใหม่ `scripts/bbn-run.mjs` ถ้าอยากให้ถามก่อน ตั้ง `automation` ใน `bbn.config.json`

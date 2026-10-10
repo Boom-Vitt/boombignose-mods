@@ -154,6 +154,8 @@ if command -v node >/dev/null 2>&1; then
   expect_code "report --strict fails over budget" 1 node "$S/bbn-report.mjs" --strict
   node "$S/bbn-report.mjs" --json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);process.exit(j.agents["claude-code"].overBudget===1&&j.merges.merged>=1?0:1)})' \
     && ok "report --json counts over-budget + merges" || bad "report json"
+  "$S/bbn-ledger.sh" agent codex --turns 0123 --note 0123 >/dev/null 2>&1 && tail -n 1 "$LED" | node -e 'const e=JSON.parse(require("fs").readFileSync(0,"utf8"));process.exit(e.turns===123&&e.note==="0123"?0:1)' \
+    && ok "ledger: leading-zero digits stay valid JSON" || bad "ledger: leading-zero digits stay valid JSON" "$(tail -n 1 "$LED")"
 
   # --- plan ---
   cd "$T/app" || exit 1
@@ -247,6 +249,10 @@ if command -v node >/dev/null 2>&1; then
 fi
 
 # --- exit codes documented for every script ---
+if command -v node >/dev/null 2>&1; then
+  node "$ROOT/tests/v06.mjs" "$T" && ok "v0.6 guardrail unit cases" || bad "v0.6 guardrail unit cases"
+fi
+
 for f in "$S"/*.sh "$S"/*.mjs; do
   n="$(basename "$f")"
   grep -q "$n" "$ROOT/docs/exit-codes.md" || bad "exit-codes.md misses $n"
