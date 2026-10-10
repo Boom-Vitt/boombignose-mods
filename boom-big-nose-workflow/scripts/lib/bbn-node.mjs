@@ -115,7 +115,7 @@ const norm = (p) => p.replace(/^\.\//, '').replace(/\/+$/, '').replace(/^\.$/, '
 const overlaps = (a, b) => { const x = norm(a), y = norm(b); return x === y || x.startsWith(y + '/') || y.startsWith(x + '/') || x === '' || y === ''; };
 export function outsidePaths(wt, base, paths) {
   const mb = git(['-C', wt, 'merge-base', base, 'HEAD']);
-  const files = git(['-C', wt, 'diff', '--name-only', '-z', mb, 'HEAD']).split('\0').filter(Boolean);
+  const files = git(['-C', wt, 'diff', '--name-only', '--no-renames', '-z', mb, 'HEAD']).split('\0').filter(Boolean);
   return files.filter((f) => !paths.some((p) => { const x = norm(p); return !x || f === x || f.startsWith(x + '/'); }));
 }
 

@@ -8,7 +8,7 @@
 //   show                             print the plan as a short summary
 //   deps-merged --branch B [--base R]  exit 3 if a stream B depends on is not merged into base yet
 //   stream-id [--branch B]           print the id of the plan stream on branch B (nothing if none)
-//   scan [--base R]                  scan added lines and added/renamed env files; prints locations only
+//   scan [--base R]                  scan added lines and env files in the diff and commits; prints locations only
 // Exit: 0 ok, 1 invalid plan, 2 usage, 3 refused (not accepted / changed since accept / order)
 import { readFileSync, writeFileSync, mkdirSync, existsSync, appendFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -63,29 +63,48 @@ function scan() {
       ['google-api', /AIza[0-9A-Za-z_-]{35}/],
       ['assignment', /(api[_-]?key|secret|token|password|passwd)["']?\s*[:=]\s*["'][^"'\s]{16,}["']/i],
     ];
-    let file = '', line = 0, hits = 0, hunk = false;
-    const hit = (f, n, name) => { console.log(`${f}:${n} ${name}`); hits++; };
-    for (const l of diff.split('\n')) {
-      if (l.startsWith('diff --git ')) hunk = false;
-      else if (!hunk && l.startsWith('+++ ')) {
-        const p = l.slice(4).replace(/\t$/, '');   // git terminates unquoted paths containing spaces with a tab
-        file = (p.startsWith('"') ? JSON.parse(p) : p).replace(/^b\//, '');
-      } else if (l.startsWith('@@ ')) { line = Number(l.match(/\+(\d+)/)[1]); hunk = true; }
-      else if (hunk && l.startsWith('+')) {
-        if (!l.includes('bbn-allow-secret')) {
-          const found = patterns.find(([, re]) => re.test(l.slice(1)));
-          if (found) hit(file, line, found[0]);
-        }
-        line++;
-      } else if (hunk && l.startsWith(' ')) line++;
-    }
-    const files = git(['diff', '--no-ext-diff', '--no-textconv', '--name-status', '-z', '--diff-filter=AR', mb, 'HEAD']).split('\0');
-    for (let i = 0; i < files.length && files[i];) {
-      const status = files[i++];
-      if (status.startsWith('R')) i++;
-      const f = files[i++], name = f.split('/').at(-1);
-      if (/^\.env(?:\..*)?$/.test(name) && !['.env.example', '.env.sample', '.env.template'].includes(name)) hit(f, 1, 'env-file');
-    }
+    let hits = 0;
+    const reported = new Set();
+    const hit = (f, n, name, sha = '') => {
+      const key = JSON.stringify([f, name]);
+      if (sha && reported.has(key)) return;
+      if (!sha) reported.add(key);
+      console.log(`${f}:${n} ${name}${sha ? ' @' + sha.slice(0, 7) : ''}`); hits++;
+    };
+    const scanPatch = (patch) => {
+      let file = '', line = 0, hunk = false, sha = '';
+      for (const l of patch.split('\n')) {
+        if (l.startsWith('commit:')) { sha = l.slice(7); hunk = false; }
+        else if (l.startsWith('diff --git ')) hunk = false;
+        else if (!hunk && l.startsWith('+++ ')) {
+          const p = l.slice(4).replace(/\t$/, '');   // git terminates unquoted paths containing spaces with a tab
+          file = (p.startsWith('"') ? JSON.parse(p) : p).replace(/^b\//, '');
+        } else if (l.startsWith('@@ ')) { line = Number(l.match(/\+(\d+)/)[1]); hunk = true; }
+        else if (hunk && l.startsWith('+')) {
+          if (!l.includes('bbn-allow-secret')) {
+            const found = patterns.find(([, re]) => re.test(l.slice(1)));
+            if (found) hit(file, line, found[0], sha);
+          }
+          line++;
+        } else if (hunk && l.startsWith(' ')) line++;
+      }
+    };
+    const scanFiles = (changes) => {
+      const files = changes.split('\0');
+      let sha = '';
+      for (let i = 0; i < files.length;) {
+        const status = files[i++].trim();
+        if (!status) continue;
+        if (status.startsWith('commit:')) { sha = status.slice(7); continue; }
+        if (status.startsWith('R')) i++;
+        const f = files[i++], name = f.split('/').at(-1);
+        if (/^\.env(?:\..*)?$/.test(name) && !['.env.example', '.env.sample', '.env.template'].includes(name)) hit(f, 1, 'env-file', sha);
+      }
+    };
+    scanPatch(diff);
+    scanFiles(git(['diff', '--no-ext-diff', '--no-textconv', '--name-status', '-z', '--diff-filter=AR', mb, 'HEAD']));
+    scanPatch(git(['-c', 'core.quotePath=false', 'log', '-p', '--no-merges', '--no-color', '--no-ext-diff', '--no-textconv', '--unified=0', '--format=commit:%H', `${mb}..HEAD`], { maxBuffer: 64 << 20 }));
+    scanFiles(git(['log', '--no-merges', '--no-ext-diff', '--no-textconv', '--name-status', '--no-renames', '-z', '--diff-filter=A', '--format=commit:%H', `${mb}..HEAD`], { maxBuffer: 64 << 20 }));
     ledger('scan', { result: hits ? 'fail' : 'pass', hits });
     return hits ? 3 : 0;
   } catch {

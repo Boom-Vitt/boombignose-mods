@@ -1,7 +1,7 @@
 // Throwaway repos only. Fake secrets are assembled here, never stored as literal patterns.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, writeFileSync, readFileSync, appendFileSync, rmSync, cpSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync, appendFileSync, rmSync, cpSync, chmodSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -64,6 +64,33 @@ test('scan unit: ordered patterns, line numbers, env files and redaction -> 3', 
 git(scanWt, 'mv', 'seed.txt', '.env.renamed'); commit(scanWt);
 test('scan unit: renamed env file is refused', () => {
   const r = plan(scanWt, 'scan', '--base', 'main'); assert.equal(r.code, 3); assert.ok(r.out.includes('.env.renamed:1 env-file'));
+});
+
+const historyDir = repo('scan-history-unit'), historyWt = join(T, 'scan-history-feature');
+git(historyDir, 'worktree', 'add', '-q', '-b', 'feature/history', historyWt, 'main');
+writeFileSync(join(historyWt, 'leak.txt'), samples[0][1] + '\n');
+writeFileSync(join(historyWt, 'allowed.txt'), samples[0][1] + ' # bbn-' + 'allow-secret\n');
+for (const f of ['.env.production', '.env.example', '.env.sample', '.env.template']) writeFileSync(join(historyWt, f), '');
+commit(historyWt);
+const leakedAt = git(historyWt, 'rev-parse', '--short=7', 'HEAD');
+git(historyWt, 'rm', '-q', 'leak.txt', 'allowed.txt', '.env.production', '.env.example', '.env.sample', '.env.template'); commit(historyWt);
+test('scan unit: deleted secret and empty env file remain refused in history', () => {
+  const r = plan(historyWt, 'scan', '--base', 'main'); assert.equal(r.code, 3);
+  assert.equal(r.out, `leak.txt:1 aws-access-key @${leakedAt}\n.env.production:1 env-file @${leakedAt}\n`);
+  assert.ok(!r.out.includes(samples[0][1]), 'history scan leaked a value');
+});
+writeFileSync(join(historyWt, 'leak.txt'), samples[0][1] + '\n'); commit(historyWt);
+test('scan unit: net diff suppresses history duplicates by file and pattern', () => {
+  const r = plan(historyWt, 'scan', '--base', 'main'); assert.equal(r.code, 3);
+  assert.equal(r.out.split('\n').filter((l) => l.startsWith('leak.txt:')).join('\n'), 'leak.txt:1 aws-access-key');
+});
+test('scan unit: a failed history git command exits 2', () => {
+  const stub = join(T, 'bad-log'); mkdirSync(stub);
+  const realGit = run(T, 'sh', ['-c', 'command -v git']).out.trim();
+  writeFileSync(join(stub, 'git'), `#!/bin/sh\nfor arg in "$@"; do [ "$arg" = log ] && exit 1; done\nexec "${realGit}" "$@"\n`);
+  chmodSync(join(stub, 'git'), 0o755);
+  const r = run(historyDir, 'node', [join(S, 'bbn-plan.mjs'), 'scan', '--base', 'main'], { PATH: `${stub}:${process.env.PATH}` });
+  assert.equal(r.code, 2); assert.ok(r.out.includes('cannot scan branch against base'));
 });
 
 const pdir = repo('plan-unit');
@@ -131,5 +158,28 @@ test('merge unit: scan exit 2 fails closed in apply and dry-run', () => {
     assert.equal(r.code, 3); assert.ok(r.out.includes('secret-scan refused (exit 2)'));
   }
   assert.ok(readFileSync(join(mdir, '.git/bbn/runs.jsonl'), 'utf8').includes('"reason":"secret-scan"'));
+});
+
+test('run unit: moving integration head changes check and gate progress keys', () => {
+  const dir = repo('progress-unit'), p = draft(['watched/']);
+  p.streams = ['watched', 'mover'].map((slug) => ({ ...stream([`${slug}/`]), slug }));
+  save(dir, p); assert.equal(plan(dir, 'accept').code, 0); assert.equal(plan(dir, 'apply', '--apply').code, 0);
+  const watched = join(T, 'progress-unit-watched'), mover = join(T, 'progress-unit-mover');
+  for (const [wt, slug] of [[watched, 'watched'], [mover, 'mover']]) {
+    mkdirSync(join(wt, slug)); writeFileSync(join(wt, slug, 'done.txt'), 'done\n'); commit(wt);
+  }
+  const tick = () => {
+    const r = run(dir, 'node', [join(S, 'bbn-run.mjs'), '--apply', '--json']);
+    assert.equal(r.code, 0); return JSON.parse(r.out.split('\n[bbn-run]')[0]);
+  };
+  tick();
+  const base = load(dir).integration, before = git(dir, 'rev-parse', base);
+  assert.equal(run(mover, join(S, 'bbn-review-record.sh'), ['APPROVE', '--base', base]).code, 0);
+  const sd = join(git(watched, 'rev-parse', '--absolute-git-dir'), 'bbn');
+  rmSync(join(sd, 'accept.json')); rmSync(join(sd, 'gate.json'));
+  const r = tick();
+  assert.notEqual(git(dir, 'rev-parse', base), before);
+  for (const step of ['check', 'gate']) assert.equal(r.ran.filter((a) => a.stream === 'watched' && a.do === step).length, 2, `${step} must re-run after the integration merge`);
+  assert.equal(r.actions[0].do, 'review', 'stale acceptance must not stop as no progress');
 });
 process.exitCode = failures ? 1 : 0;

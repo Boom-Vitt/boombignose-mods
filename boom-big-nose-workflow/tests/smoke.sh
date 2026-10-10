@@ -103,10 +103,6 @@ check "auto: checks + gate pass -> review" '[ "$(act --apply)" = "review:pay-api
 check "auto: generated gate runs each check in its own shell" 'grep -qx "(" "$PA/.bbn/gate.sh"'
 (cd "$PA" && "$S/bbn-review-record.sh" APPROVE --base "$IN" >/dev/null && rm "$(git rev-parse --absolute-git-dir)/bbn/review.json")
 step "merge: stream refuses a base other than the integration branch" 3 sh -c "cd '$PA' && '$S/bbn-merge.sh' --apply --base main --ignore-order"
-(cd "$PA" && node -e 'require("fs").writeFileSync("src/api/leak.txt", "AK"+"IA"+"A".repeat(16)+"\n")' && git add -A && git commit -qm "api: unsafe fixture")
-step "scan: secret in a commit refuses the merge" 3 sh -c "cd '$PA' && '$S/bbn-merge.sh' --apply --base '$IN'"
-check "auto: secret scan failure -> fix" '[ "$(act --apply)" = "fix:pay-api wait:pay-ui" ] && grep -q secret-scan "$(git -C "$PA" rev-parse --absolute-git-dir)/bbn/accept.json"'
-(cd "$PA" && git rm -q src/api/leak.txt && git commit -qm "api: remove unsafe fixture")
 step "scan: clean branch passes" 0 sh -c "cd '$PA' && node '$S/bbn-plan.mjs' scan --base '$IN'"
 acc() { node -e 'const f=".bbn/plan.json",fs=require("fs"),p=JSON.parse(fs.readFileSync(f));p.streams[1].acceptance=process.argv.slice(1);fs.writeFileSync(f,JSON.stringify(p))' "$@"; node "$S/bbn-plan.mjs" accept --by reviewer >/dev/null; }
 acc "test -f src/api/pay.txt" "test -f src/api/missing.txt"
@@ -197,6 +193,42 @@ mkdir -p .bbn; cat > .bbn/plan.json <<'JSON'
 {"version":1,"title":"ignored","status":"draft","goal":"g","streams":[{"slug":"cache","role":"codex","paths":["cache/"],"acceptance":["true"]}]}
 JSON
 step "plan: gitignored owned path is an error" 1 node "$S/bbn-plan.mjs" check
+
+# 10. renaming an unowned source into an owned tree still changes the source path.
+git init -q "$T/rename"; cd "$T/rename" || exit 1
+echo source > unowned.txt; git add unowned.txt; git commit -qm init
+mkdir -p .bbn; cat > .bbn/plan.json <<'JSON'
+{"version":1,"title":"rename","status":"draft","goal":"g","streams":[{"slug":"rename","role":"codex","paths":["owned/"],"acceptance":["true"]}]}
+JSON
+node "$S/bbn-plan.mjs" accept --by reviewer >/dev/null; act --apply >/dev/null
+IN="$(node -p 'require("./.bbn/plan.json").integration')"
+RW="$T/rename-rename"
+(cd "$RW" && mkdir owned && git mv unowned.txt owned/moved.txt && git commit -qm "rename across ownership")
+check "auto: rename from outside stream paths -> fix" '[ "$(act --apply)" = fix:rename ] && grep -q "outside the stream paths: unowned.txt" "$(git -C "$RW" rev-parse --absolute-git-dir)/bbn/accept.json"'
+git branch -f "$IN" feature/rename
+step "auto: final paths union refuses an unowned rename source" 1 node "$S/bbn-run.mjs" verify
+check "auto: final rename reports the unowned source" 'grep -q "outside the plan paths: unowned.txt" "$(git rev-parse --git-common-dir)/bbn/verify.json"'
+
+# 11. a deleted secret still ships in history; keep this fixture out of the clean automatic flow.
+git clone -q "$T/origin.git" "$T/secret" 2>/dev/null; cd "$T/secret" || exit 1
+mkdir -p .bbn; cat > .bbn/plan.json <<'JSON'
+{"version":1,"title":"secret","status":"draft","goal":"g","streams":[{"slug":"secret","role":"codex","paths":["src/api/"],"acceptance":["true"]}]}
+JSON
+node "$S/bbn-plan.mjs" accept --by reviewer >/dev/null; act --apply >/dev/null
+IN="$(node -p 'require("./.bbn/plan.json").integration')"
+SW="$T/secret-secret"
+(cd "$SW" && node -e 'require("fs").writeFileSync("src/api/leak.txt", "AK"+"IA"+"A".repeat(16)+"\n")' && git add -A && git commit -qm "unsafe fixture")
+step "scan: secret in a commit refuses the merge" 3 sh -c "cd '$SW' && '$S/bbn-merge.sh' --apply --base '$IN'"
+check "auto: secret scan failure -> fix" '[ "$(act --apply)" = fix:secret ] && grep -q secret-scan "$(git -C "$SW" rev-parse --absolute-git-dir)/bbn/accept.json"'
+# shellcheck disable=SC2034 # Used by check's eval.
+SECRET_SHA="$(git -C "$SW" rev-parse --short=7 HEAD)"
+(cd "$SW" && git rm -q src/api/leak.txt && git commit -qm "remove unsafe fixture")
+out="$(cd "$SW" && node "$S/bbn-plan.mjs" scan --base "$IN")"
+# shellcheck disable=SC2034 # Used by check's eval.
+rc=$?
+check "scan: deleted secret reports its commit and exits 3" '[ "$rc" = 3 ] && echo "$out" | grep -qx "src/api/leak.txt:1 aws-access-key @$SECRET_SHA"'
+step "scan: deleted secret still refuses the merge" 3 sh -c "cd '$SW' && '$S/bbn-merge.sh' --apply --base '$IN'"
+step "scan: deleted secret refuses a dry-run merge" 3 sh -c "cd '$SW' && '$S/bbn-merge.sh' --base '$IN'"
 
 echo "---"; echo "smoke: $pass passed, $fail failed"
 [ "$fail" -eq 0 ]

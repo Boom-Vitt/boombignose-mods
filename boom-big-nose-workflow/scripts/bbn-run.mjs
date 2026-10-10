@@ -196,11 +196,11 @@ function evaluate(attempted) {
       ? { ...a, ...o, do: 'stop', why: `${o.why}, and ${n} failed checks or reviews since the last approval (hardStopOnRepeatedFailures): needs the user` }
       : { ...a, ...work, ...o, do: 'fix' });
 
-    const acc = readJson(join(sd, 'accept.json'), {});
-    if (acc.head !== h || acc.baseHead !== git(['rev-parse', base]) || acc.checks !== checksId(s)) { step({ ...a, do: 'check' }, `check:${slug}:${h}:${checksId(s)}`, () => ({ out: runAccept(s, wt, sd, h) })); continue; }
+    const acc = readJson(join(sd, 'accept.json'), {}), baseHead = git(['rev-parse', base]);
+    if (acc.head !== h || acc.baseHead !== baseHead || acc.checks !== checksId(s)) { step({ ...a, do: 'check' }, `check:${slug}:${h}:${baseHead}:${checksId(s)}`, () => ({ out: runAccept(s, wt, sd, h) })); continue; }
     if (acc.result !== 'pass') { fix({ failed: acc.failed, why: 'acceptance checks failed' }); continue; }
     const gate = readJson(join(sd, 'gate.json'), {});
-    if (gate.head !== h) { step({ ...a, do: 'gate' }, `gate:${slug}:${h}`, () => ({ out: runGate(s, wt, sd) })); continue; }
+    if (gate.head !== h) { step({ ...a, do: 'gate' }, `gate:${slug}:${h}:${baseHead}`, () => ({ out: runGate(s, wt, sd) })); continue; }
     if (gate.result === 'fail') { fix({ log: join(sd, 'gate.log'), why: `gate failed (${gate.steps})` }); continue; }
     if (gate.result !== 'pass') { out.push({ ...a, do: 'stop', why: 'gate found no checks: add .bbn/gate.sh or set BBN_GATE_CMD' }); continue; }
 
