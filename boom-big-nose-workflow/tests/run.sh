@@ -154,7 +154,7 @@ if command -v node >/dev/null 2>&1; then
   expect_code "report --strict fails over budget" 1 node "$S/bbn-report.mjs" --strict
   node "$S/bbn-report.mjs" --json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);process.exit(j.agents["claude-code"].overBudget===1&&j.merges.merged>=1?0:1)})' \
     && ok "report --json counts over-budget + merges" || bad "report json"
-  "$S/bbn-ledger.sh" agent codex --turns 0123 >/dev/null 2>&1 && tail -n 1 "$LED" | node -e 'process.exit(JSON.parse(require("fs").readFileSync(0,"utf8")).turns==="0123"?0:1)' \
+  "$S/bbn-ledger.sh" agent codex --turns 0123 --note 0123 >/dev/null 2>&1 && tail -n 1 "$LED" | node -e 'const e=JSON.parse(require("fs").readFileSync(0,"utf8"));process.exit(e.turns===123&&e.note==="0123"?0:1)' \
     && ok "ledger: leading-zero digits stay valid JSON" || bad "ledger: leading-zero digits stay valid JSON" "$(tail -n 1 "$LED")"
 
   # --- plan ---
