@@ -51,7 +51,7 @@ function scan() {
   try {
     const base = opt('--base') ? pickBase(opt('--base')) : resolveBase(readJson(planPath));
     const mb = git(['merge-base', base, 'HEAD']);
-    const diff = git(['-c', 'core.quotePath=false', 'diff', '--no-color', '--no-ext-diff', '--no-textconv', '--unified=0', mb, 'HEAD'], { maxBuffer: 64 << 20 });
+    const diff = git(['-c', 'core.quotePath=false', 'diff', '--text', '--no-color', '--no-ext-diff', '--no-textconv', '--unified=0', mb, 'HEAD'], { maxBuffer: 64 << 20 });
     const patterns = [
       ['aws-access-key', /AKIA[0-9A-Z]{16}/],
       ['private-key', /-----BEGIN [A-Z ]*PRIVATE KEY-----/],
@@ -102,9 +102,9 @@ function scan() {
       }
     };
     scanPatch(diff);
-    scanFiles(git(['diff', '--no-ext-diff', '--no-textconv', '--name-status', '-z', '--diff-filter=AR', mb, 'HEAD']));
-    scanPatch(git(['-c', 'core.quotePath=false', 'log', '-p', '--no-merges', '--no-color', '--no-ext-diff', '--no-textconv', '--unified=0', '--format=commit:%H', `${mb}..HEAD`], { maxBuffer: 64 << 20 }));
-    scanFiles(git(['log', '--no-merges', '--no-ext-diff', '--no-textconv', '--name-status', '--no-renames', '-z', '--diff-filter=A', '--format=commit:%H', `${mb}..HEAD`], { maxBuffer: 64 << 20 }));
+    scanFiles(git(['diff', '--text', '--no-ext-diff', '--no-textconv', '--name-status', '-z', '--diff-filter=AR', mb, 'HEAD']));
+    scanPatch(git(['-c', 'core.quotePath=false', 'log', '-p', '--diff-merges=remerge', '--text', '--no-color', '--no-ext-diff', '--no-textconv', '--unified=0', '--format=commit:%H', `${mb}..HEAD`], { maxBuffer: 64 << 20 }));
+    scanFiles(git(['log', '--diff-merges=remerge', '--text', '--no-ext-diff', '--no-textconv', '--name-status', '--no-renames', '-z', '--diff-filter=A', '--format=commit:%H', `${mb}..HEAD`], { maxBuffer: 64 << 20 }));
     ledger('scan', { result: hits ? 'fail' : 'pass', hits });
     return hits ? 3 : 0;
   } catch {

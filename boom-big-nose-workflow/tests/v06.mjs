@@ -93,6 +93,50 @@ test('scan unit: a failed history git command exits 2', () => {
   assert.equal(r.code, 2); assert.ok(r.out.includes('cannot scan branch against base'));
 });
 
+test('scan unit: deleted merge-resolution secret reports the merge commit', () => {
+  const dir = repo('scan-merge-unit'), wt = join(T, 'scan-merge-feature'), side = join(T, 'scan-merge-side');
+  git(dir, 'worktree', 'add', '-q', '-b', 'feature/resolution', wt, 'main');
+  git(dir, 'worktree', 'add', '-q', '-b', 'feature/side', side, 'main');
+  for (const [path, value] of [[wt, 'left'], [side, 'right']]) {
+    writeFileSync(join(path, 'seed.txt'), value + '\n'); commit(path);
+  }
+  assert.equal(run(wt, 'git', ['merge', '--no-ff', '-m', 'conflict fixture', 'feature/side']).code, 1);
+  const key = samples[6][1];
+  writeFileSync(join(wt, 'seed.txt'), key + '\n'); commit(wt);
+  const sha = git(wt, 'rev-parse', '--short=7', 'HEAD');
+  git(wt, 'rm', '-q', 'seed.txt'); commit(wt);
+  const r = plan(wt, 'scan', '--base', 'main');
+  assert.equal(r.code, 3);
+  assert.ok(!r.out.includes(key), 'merge history scan leaked a value');
+  assert.ok(r.out === `seed.txt:1 anthropic @${sha}\n`, 'missing merge-resolution location');
+});
+test('scan unit: clean no-ff merge adds no duplicate history hits', () => {
+  const dir = repo('scan-clean-merge-unit'), wt = join(T, 'scan-clean-merge-feature'), side = join(T, 'scan-clean-merge-side');
+  git(dir, 'worktree', 'add', '-q', '-b', 'feature/clean', wt, 'main');
+  git(dir, 'worktree', 'add', '-q', '-b', 'feature/side', side, 'main');
+  writeFileSync(join(side, 'leak.txt'), samples[6][1] + '\n'); commit(side);
+  const sha = git(side, 'rev-parse', '--short=7', 'HEAD');
+  git(wt, 'merge', '-q', '--no-ff', '-m', 'clean merge fixture', 'feature/side');
+  git(wt, 'rm', '-q', 'leak.txt'); commit(wt);
+  const r = plan(wt, 'scan', '--base', 'main');
+  assert.equal(r.code, 3);
+  assert.ok(!r.out.includes(samples[6][1]), 'clean merge scan leaked a value');
+  assert.ok(r.out === `leak.txt:1 anthropic @${sha}\n`, 'clean merge must report only the original hit');
+});
+test('scan unit: NUL-containing file is scanned in net diff and deleted history', () => {
+  const dir = repo('scan-binary-unit'), wt = join(T, 'scan-binary-feature');
+  git(dir, 'worktree', 'add', '-q', '-b', 'feature/binary', wt, 'main');
+  writeFileSync(join(wt, 'binary.dat'), '\0' + samples[6][1] + '\n'); commit(wt);
+  const sha = git(wt, 'rev-parse', '--short=7', 'HEAD');
+  let r = plan(wt, 'scan', '--base', 'main');
+  assert.equal(r.code, 3);
+  assert.ok(r.out === 'binary.dat:1 anthropic\n', 'missing binary net-diff location or leaked value');
+  git(wt, 'rm', '-q', 'binary.dat'); commit(wt);
+  r = plan(wt, 'scan', '--base', 'main');
+  assert.equal(r.code, 3);
+  assert.ok(r.out === `binary.dat:1 anthropic @${sha}\n`, 'missing binary history location or leaked value');
+});
+
 const pdir = repo('plan-unit');
 save(pdir, draft(['src/']));
 test('plan unit: accept names integration and excludes it from the hash', () => {
@@ -158,6 +202,27 @@ test('merge unit: scan exit 2 fails closed in apply and dry-run', () => {
     assert.equal(r.code, 3); assert.ok(r.out.includes('secret-scan refused (exit 2)'));
   }
   assert.ok(readFileSync(join(mdir, '.git/bbn/runs.jsonl'), 'utf8').includes('"reason":"secret-scan"'));
+});
+
+test('run unit: narrowing paths re-runs acceptance on the same HEAD', () => {
+  const dir = repo('paths-unit');
+  save(dir, draft(['owned/']));
+  assert.equal(plan(dir, 'accept').code, 0); assert.equal(plan(dir, 'apply', '--apply').code, 0);
+  const wt = join(T, 'paths-unit-owned');
+  mkdirSync(join(wt, 'owned')); writeFileSync(join(wt, 'owned/done.txt'), 'done\n'); commit(wt);
+  const tick = () => {
+    const r = run(dir, 'node', [join(S, 'bbn-run.mjs'), '--apply', '--json']);
+    assert.equal(r.code, 0); return JSON.parse(r.out.split('\n[bbn-run]')[0]);
+  };
+  assert.equal(tick().actions[0].do, 'review');
+  const cache = join(git(wt, 'rev-parse', '--absolute-git-dir'), 'bbn/accept.json');
+  const before = JSON.parse(readFileSync(cache)), p = load(dir);
+  p.streams[0].paths = ['owned/narrow/']; save(dir, p); assert.equal(plan(dir, 'accept').code, 0);
+  const r = tick(), after = JSON.parse(readFileSync(cache));
+  assert.ok(r.ran.some((a) => a.do === 'check'), 'narrowed paths must re-run checks');
+  assert.equal(after.head, before.head); assert.equal(after.baseHead, before.baseHead);
+  assert.notEqual(after.checks, before.checks);
+  assert.equal(r.actions[0].do, 'fix'); assert.equal(after.failed[0].cmd, 'paths');
 });
 
 test('run unit: moving integration head changes check and gate progress keys', () => {

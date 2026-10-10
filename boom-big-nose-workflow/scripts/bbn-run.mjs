@@ -30,7 +30,7 @@ const progress = (m) => console.error(`[bbn-run] ${m}`);
 const tail = (s, n = 15) => s.trimEnd().split('\n').slice(-n).join('\n');
 const now = () => new Date().toISOString().replace(/\.\d+Z$/, 'Z');
 const short = (x) => createHash('sha256').update(JSON.stringify(x)).digest('hex').slice(0, 12);
-const checksId = (s) => short(s.acceptance);
+const checksId = (s) => short([s.acceptance, s.paths]);
 const GATE_MARK = '# Written by bbn-run.mjs';
 const q = (x) => `'${String(x).replace(/'/g, `'\\''`)}'`;   // shell-quote for commands shown to the user
 // What the gate on the main checkout runs besides tracked files: BBN_GATE_CMD and the untracked .bbn/gate.sh.
