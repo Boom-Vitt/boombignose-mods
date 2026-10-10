@@ -247,6 +247,10 @@ if command -v node >/dev/null 2>&1; then
 fi
 
 # --- exit codes documented for every script ---
+if command -v node >/dev/null 2>&1; then
+  node "$ROOT/tests/v06.mjs" "$T" && ok "v0.6 guardrail unit cases" || bad "v0.6 guardrail unit cases"
+fi
+
 for f in "$S"/*.sh "$S"/*.mjs; do
   n="$(basename "$f")"
   grep -q "$n" "$ROOT/docs/exit-codes.md" || bad "exit-codes.md misses $n"

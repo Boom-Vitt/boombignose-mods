@@ -4,14 +4,14 @@
 #   bbn-merge.sh                 dry-run: show what would happen and why it would refuse
 #   bbn-merge.sh --apply         rebase on base -> gate -> check review -> merge --no-ff into local base
 #   bbn-merge.sh --apply --pr    rebase -> gate -> check review -> push feature branch -> gh pr create --draft
-# Options: --base <ref>  --allow-empty-gate  --ignore-order (skip plan dependsOn check)
+# Options: --base <ref>  --no-rebase  --allow-empty-gate  --ignore-order (skip plan dependsOn check)
 # Exit: 0 ok, 1 gate failed, 2 usage, 3 refused (review/state), 4 conflict (hand to Codex), 5 stale review
 set -uo pipefail
 BBN_TAG=bbn-merge
 HERE="$(cd "$(dirname "$0")" && pwd)"
 . "$HERE/lib/bbn-common.sh"
 
-APPLY=0; PR=0; BASE_ARG=""; ALLOW_EMPTY=0; IGNORE_ORDER=0
+APPLY=0; PR=0; BASE_ARG=""; ALLOW_EMPTY=0; IGNORE_ORDER=0; NO_REBASE=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --apply) APPLY=1; shift ;;
@@ -19,6 +19,7 @@ while [ $# -gt 0 ]; do
     --base) bbn_need_val "$@"; BASE_ARG="$2"; shift 2 ;;
     --allow-empty-gate) ALLOW_EMPTY=1; shift ;;
     --ignore-order) IGNORE_ORDER=1; shift ;;
+    --no-rebase) NO_REBASE=1; shift ;;
     -h|--help) sed -n '3,8p' "$0"; exit 0 ;;
     *) bbn_die "unknown arg: $1" 2 ;;
   esac
@@ -30,6 +31,14 @@ bbn_protected_branch "$branch" && bbn_die "on '$branch': run from the feature br
 git fetch --quiet origin 2>/dev/null || bbn_warn "fetch failed; using local refs"
 base="$(bbn_pick_base "$BASE_ARG")" || exit
 base_local="${base#origin/}"
+main_wt="$(git worktree list --porcelain | awk '/^worktree /{print substr($0,10); exit}')"
+if command -v node >/dev/null 2>&1; then
+  integration="$(node -e 'const fs=require("fs");let p;try{p=JSON.parse(fs.readFileSync(process.argv[1],"utf8"))}catch{};if(p?.integration&&p.streams?.some(s=>"feature/"+s.slug===process.argv[2]))console.log(p.integration)' "$main_wt/.bbn/plan.json" "$branch")"
+  if [ -n "$integration" ] && [ "$base" != "$integration" ]; then
+    bbn_ledger merge result=refused reason=base-not-integration
+    bbn_die "base-not-integration: plan streams must merge into $integration" 3
+  fi
+fi
 sd="$(bbn_state_dir)"
 review="$sd/review.json"
 verdict="$(bbn_json_get "$review" verdict)"
@@ -48,10 +57,19 @@ if [ "$IGNORE_ORDER" -eq 0 ] && command -v node >/dev/null 2>&1; then
   deps_out="$(node "$HERE/bbn-plan.mjs" deps-merged --branch "$branch" --base "$base" 2>&1)"; deps_rc=$?
   [ "$deps_rc" -eq 3 ] && refuse="${refuse:+$refuse; }$deps_out"
 fi
+scan_out="$(node "$HERE/bbn-plan.mjs" scan --base "$base" 2>&1)"; scan_rc=$?
+if [ "$scan_rc" -ne 0 ]; then
+  bbn_ledger merge result=refused reason=secret-scan
+  [ -n "$scan_out" ] && bbn_log "$scan_out"
+  bbn_die "secret-scan refused (exit $scan_rc)" 3
+fi
 
 if [ "$APPLY" -eq 0 ]; then
   bbn_log "plan:"
-  [ $need_rebase -eq 1 ] && bbn_log "  1. git rebase $base (conflicts -> Codex, then /bbn-review again)"
+  if [ $need_rebase -eq 1 ]; then
+    if [ $NO_REBASE -eq 1 ]; then bbn_log "  1. base moved: merge $base into this branch (no rebase), then review again"
+    else bbn_log "  1. git rebase $base (conflicts -> Codex, then /bbn-review again)"; fi
+  fi
   bbn_log "  2. bbn-gate.sh on the rebased tree"
   bbn_log "  3. check review patch-id still matches (else re-review)"
   if [ $PR -eq 1 ]; then bbn_log "  4. git push -u origin $branch (no force) + gh pr create --draft --base $base_local"
@@ -61,6 +79,10 @@ if [ "$APPLY" -eq 0 ]; then
 fi
 
 [ -n "$refuse" ] && { bbn_ledger merge result=refused "reason=$refuse"; bbn_die "refusing: $refuse" 3; }
+if [ $need_rebase -eq 1 ] && [ $NO_REBASE -eq 1 ]; then
+  bbn_ledger merge result=conflict stage=base-moved
+  bbn_die "base moved: merge $base into this branch (no rebase), then review again" 4
+fi
 pid="$(bbn_patch_id "$base")" || bbn_die "cannot fingerprint the branch" 1
 [ "$pid" = "$reviewed_patch" ] \
   || { bbn_ledger merge result=stale_review; bbn_die "changes differ from what was reviewed (new commits since review). Re-run /bbn-review." 5; }
@@ -79,6 +101,14 @@ git merge-base --is-ancestor "$base" HEAD || bbn_die "branch still not based on 
 now_patch="$(bbn_patch_id "$base")" || bbn_die "cannot fingerprint the branch" 1
 if [ "$now_patch" != "$reviewed_patch" ]; then
   bbn_die "changes differ from what was reviewed (new commits or conflict edits). Re-run /bbn-review." 5
+fi
+if [ $need_rebase -eq 1 ]; then
+  scan_out="$(node "$HERE/bbn-plan.mjs" scan --base "$base" 2>&1)"; scan_rc=$?
+  if [ "$scan_rc" -ne 0 ]; then
+    bbn_ledger merge result=refused reason=secret-scan
+    [ -n "$scan_out" ] && bbn_log "$scan_out"
+    bbn_die "secret-scan refused (exit $scan_rc)" 3
+  fi
 fi
 
 "$HERE/bbn-gate.sh"; g=$?

@@ -15,6 +15,7 @@
     "goal": { "type": "string", "minLength": 1 },
     "nonGoals": { "type": "array", "items": { "type": "string" } },
     "base": { "type": "string" },
+    "integration": { "type": "string", "pattern": "^bbn/[a-z0-9][a-z0-9._-]{0,80}$" },
     "risks": { "type": "array", "items": { "type": "string" } },
     "replanTriggers": { "type": "array", "items": { "type": "string" } },
     "streams": {
