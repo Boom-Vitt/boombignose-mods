@@ -126,6 +126,8 @@ function verify(plan) {
   try {
     const outside = outsidePaths(dir, target, plan.streams.flatMap((s) => s.paths));
     if (outside.length) failed.push({ cmd: 'paths', code: 1, tail: `outside the plan paths: ${outside.join(', ')}` });
+    const scan = run('node', [join(S, 'bbn-plan.mjs'), 'scan', '--base', target], { cwd: dir });
+    if (scan.code) failed.push({ cmd: 'secret-scan', code: scan.code, tail: tail(scan.out) });
     for (const s of plan.streams) for (const cmd of s.acceptance) {
       const r = run('bash', ['-c', cmd], { cwd: dir, timeout: STEP_MS });
       if (r.code) failed.push({ stream: s.slug, cmd, code: r.code, tail: tail(r.out) });
