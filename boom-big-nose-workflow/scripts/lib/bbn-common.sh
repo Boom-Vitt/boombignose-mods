@@ -84,7 +84,7 @@ bbn_ledger() {
   for kv in "$@"; do
     k="${kv%%=*}"; v="${kv#*=}"
     case "$v" in
-      ''|*[!0-9]*) line="$line,\"$k\":\"$(bbn_json_escape "$v")\"" ;;
+      ''|*[!0-9]*|0?*) line="$line,\"$k\":\"$(bbn_json_escape "$v")\"" ;;  # JSON numbers have no leading zero (short shas like 0123456)
       *) line="$line,\"$k\":$v" ;;
     esac
   done
