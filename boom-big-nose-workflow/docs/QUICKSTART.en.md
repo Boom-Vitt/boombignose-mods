@@ -42,8 +42,9 @@ No slash command is needed: the `bbn-workflow` skill starts on its own for a goa
 2. **Plan approval.** `bbn-reviewer` (Claude Opus) checks the plan and approves it, or sends it back to the hub with a fix list.
 3. **Build.** The harness (`scripts/bbn-run.mjs`) creates one worktree per stream in dependency order. `claude-code` (Claude Sonnet) or `codex` (the Codex CLI, driven by Claude Haiku) builds each stream and commits.
 4. **Checks.** The harness runs the stream's acceptance checks and the gate (lint/typecheck/test) on that exact commit. A failure goes back to the builder as `fix`.
-5. **Review.** `bbn-reviewer` reviews the branch with a Codex second opinion. On APPROVE the harness merges it into your **local** base, one branch at a time in plan order. A conflict goes to `codex`, and the branch is checked and reviewed again.
-6. **Verify.** After the last merge the harness removes the merged worktrees and runs every acceptance check plus the gate on the merged base. Then BBN reports each stream, the verify result, the local base commit and turns used vs budget.
+5. **Review.** `bbn-reviewer` reviews the branch with a Codex second opinion. On APPROVE the harness merges it into the run's **integration branch** (`bbn/<title>-<hash6>`), one stream at a time in plan order; your base is not touched yet. Checks also cover the secret scan and "only files under the stream's paths". A conflict goes to `codex`, and the branch is checked and reviewed again.
+6. **Verify.** After the last stream the harness removes the stream worktrees, opens a final worktree on the integration branch and runs every acceptance check, the gate and a paths check there.
+7. **Final review.** `bbn-reviewer` (with a Codex second opinion) reviews the whole base...integration diff (`final-review`). On APPROVE the harness makes the one merge into your **local** base (`--no-rebase`; if the base moved, `codex` merges it into the integration branch first, never a rebase). On REQUEST_CHANGES the plan gains a fix stream under a new slug and the merged streams stay in the plan. Then BBN reports each stream, the verify result, the local base commit and turns used vs budget.
 
 Nothing is pushed: pushing, PRs and deploying stay your call. A stream that fails its checks or review 3 times, or a step that makes no progress, stops; BBN tells you which stream and why, and keeps going with the others.
 
@@ -128,8 +129,8 @@ Ordered by plan dependencies -> ready (gate + review match the current commit) -
 /bbn-merge checkout-api --apply    # rebase -> gate -> fingerprint check -> merge into the local base
 ```
 
-- exit 3: refused (no APPROVE, dirty tree, plan dependency not merged yet)
-- exit 4: rebase conflict -> hand to `codex`, then review again
+- exit 3: refused (no APPROVE, dirty tree, plan dependency not merged yet, secret scan hit, a plan stream aimed at any base but its integration branch)
+- exit 4: rebase conflict, or with `--no-rebase` the base moved -> hand to `codex`, then review again
 - exit 5: code changed after the review -> review again
 
 BBN never pushes the base and never force-pushes. For a PR: `--apply --pr` (draft).
