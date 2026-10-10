@@ -135,6 +135,12 @@ chmod -x .bbn/gate.sh
 check "auto: a non-executable .bbn/gate.sh fails verify" '[ "$(act --apply)" = replan ]'
 rm .bbn/gate.sh
 check "auto: gate removed -> verified again" '[ "$(act --apply)" = final-review ]'
+(cd "$FINAL" && node -e 'require("fs").writeFileSync("src/api/leak.txt", "AK"+"IA"+"A".repeat(16)+"\n")' && git add src/api/leak.txt && git commit -qm "unsafe integration fixture")
+node "$S/bbn-run.mjs" verify --json >/dev/null; rc=$?
+check "verify: secret in the integration branch fails verify" '[ "$rc" = 1 ] && node -e '\''const v=JSON.parse(require("fs").readFileSync(process.argv[1]));process.exit(v.result==="fail"&&v.failed.some((f)=>f.cmd==="secret-scan"&&f.code===3)?0:1)'\'' "$(git rev-parse --git-common-dir)/bbn/verify.json" && [ "$(act --apply)" = replan ]'
+# Remove the fixture commit, since deleting its file would still leave the secret in history.
+(cd "$FINAL" && git reset --hard HEAD~1 >/dev/null)
+rm "$(git rev-parse --git-common-dir)/bbn/verify.json"
 (cd "$FINAL" && echo outside > stray.txt && git add stray.txt && git commit -qm "outside final paths")
 check "auto: final paths check -> replan" '[ "$(act --apply)" = replan ] && grep -q "outside the plan paths: stray.txt" "$(git rev-parse --git-common-dir)/bbn/verify.json"'
 (cd "$FINAL" && git rm -q stray.txt && git commit -qm "restore final paths")
