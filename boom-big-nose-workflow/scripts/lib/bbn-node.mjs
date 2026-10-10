@@ -12,8 +12,9 @@ export const BASE_CANDIDATES = ['origin/dev', 'origin/main', 'dev', 'main', 'mas
 
 export function git(args, opts = {}) {
   try {
-    return execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env, GIT_TERMINAL_PROMPT: '0' }, ...opts }).trim();
+    const out = execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+      env: { ...process.env, GIT_TERMINAL_PROMPT: '0' }, ...opts });
+    return opts.raw ? out : out.trim();
   } catch (e) {
     if (opts.allowFail) return { code: e.status, out: String(e.stdout || '').trim() };
     throw e;
@@ -35,6 +36,13 @@ export function pickBase(override) {
   }
   for (const r of BASE_CANDIDATES) if (gitOk(['rev-parse', '--verify', '--quiet', r])) return r;
   throw new Error('no base branch found');
+}
+// Merges land locally; prefer the local branch once it contains the remote base.
+export function resolveBase(plan) {
+  const r = pickBase(plan?.base || process.env.BBN_BASE || undefined);
+  const l = r.replace(/^origin\//, '');
+  return r.startsWith('origin/') && gitOk(['rev-parse', '--verify', '--quiet', `refs/heads/${l}`]) &&
+    gitOk(['merge-base', '--is-ancestor', r, `refs/heads/${l}`]) ? l : r;
 }
 export function commonDir() {
   const d = join(git(['rev-parse', '--path-format=absolute', '--git-common-dir']), 'bbn');
@@ -104,10 +112,15 @@ export const exists = existsSync;
 // A stream's identity: what it builds and how it is checked. bbn-merge.sh logs it with the merge.
 export const streamId = (s) => 'st-' + createHash('sha256').update(JSON.stringify({ summary: s.summary || '', paths: s.paths, acceptance: s.acceptance })).digest('hex').slice(0, 12);
 export const hashStreams = (p) => createHash('sha256').update(JSON.stringify({ goal: p.goal, base: p.base || '', streams: p.streams })).digest('hex').slice(0, 16);
-const norm = (p) => p.replace(/^\.\//, '').replace(/\/+$/, '');
+const norm = (p) => p.replace(/^\.\//, '').replace(/\/+$/, '').replace(/^\.$/, '');
 const overlaps = (a, b) => { const x = norm(a), y = norm(b); return x === y || x.startsWith(y + '/') || y.startsWith(x + '/') || x === '' || y === ''; };
+export function outsidePaths(wt, base, paths) {
+  const mb = git(['-C', wt, 'merge-base', base, 'HEAD']);
+  const files = git(['-C', wt, 'diff', '--name-only', '--no-renames', '-z', mb, 'HEAD'], { raw: true }).split('\0').filter(Boolean);
+  return files.filter((f) => !paths.some((p) => { const x = norm(p); return !x || f === x || f.startsWith(x + '/'); }));
+}
 
-export function checkPlan(plan, cfg = loadConfig()) {
+export function checkPlan(plan, cfg = loadConfig(), checkFiles = false) {
   const errors = validate(plan, readJson(join(PLUGIN_ROOT, 'bbn.plan.schema.json')), 'plan');
   if (errors.length) return { errors, warnings: [] };
   const warnings = [];
@@ -116,9 +129,20 @@ export function checkPlan(plan, cfg = loadConfig()) {
   const maxWt = cfg.budgets?.maxParallelWorktrees ?? 6;
   if (plan.streams.length > maxWt) errors.push(`streams: ${plan.streams.length} > maxParallelWorktrees (${maxWt}); split the plan into waves`);
   const minAcc = cfg.planValidation?.minAcceptanceChecks ?? 1;
+  const mainWt = checkFiles ? worktrees()[0].path : '';
   for (const s of plan.streams) {
     if (s.acceptance.length < minAcc) errors.push(`${s.slug}: needs at least ${minAcc} acceptance check(s)`);
-    for (const p of s.paths) if (p.startsWith('/') || p.split('/').includes('..')) errors.push(`${s.slug}: path must be repo-relative: ${p}`);
+    for (const p of s.paths) {
+      if (p.startsWith('/') || p.split('/').includes('..')) { errors.push(`${s.slug}: path must be repo-relative: ${p}`); continue; }
+      if (!checkFiles) continue;
+      const files = git(['-C', mainWt, 'ls-files', '-t', '-z', '--cached', '--others', '--exclude-standard', '--', p]).split('\0');
+      const ignored = gitOk(['-C', mainWt, 'check-ignore', '--no-index', '-q', '--', p]);
+      if (ignored) {
+        if (files.some((f) => f && !f.startsWith('? '))) warnings.push(`${s.slug}: ${p} is gitignored but has tracked files; worktrees carry the tracked files only`);
+        else errors.push(`${s.slug}: ${p} is gitignored; worktrees will not carry it`);
+      }
+      if (files.some((f) => f.startsWith('? '))) errors.push(`${s.slug}: ${p} has untracked files in the main checkout; commit or move them first (worktrees start from git)`);
+    }
     for (const d of s.dependsOn || []) {
       if (d === s.slug) errors.push(`${s.slug}: depends on itself`);
       else if (!slugs.has(d)) errors.push(`${s.slug}: depends on unknown stream ${d}`);
