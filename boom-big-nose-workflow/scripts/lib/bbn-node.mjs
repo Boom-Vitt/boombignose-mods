@@ -12,8 +12,9 @@ export const BASE_CANDIDATES = ['origin/dev', 'origin/main', 'dev', 'main', 'mas
 
 export function git(args, opts = {}) {
   try {
-    return execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env, GIT_TERMINAL_PROMPT: '0' }, ...opts }).trim();
+    const out = execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+      env: { ...process.env, GIT_TERMINAL_PROMPT: '0' }, ...opts });
+    return opts.raw ? out : out.trim();
   } catch (e) {
     if (opts.allowFail) return { code: e.status, out: String(e.stdout || '').trim() };
     throw e;
@@ -115,7 +116,7 @@ const norm = (p) => p.replace(/^\.\//, '').replace(/\/+$/, '').replace(/^\.$/, '
 const overlaps = (a, b) => { const x = norm(a), y = norm(b); return x === y || x.startsWith(y + '/') || y.startsWith(x + '/') || x === '' || y === ''; };
 export function outsidePaths(wt, base, paths) {
   const mb = git(['-C', wt, 'merge-base', base, 'HEAD']);
-  const files = git(['-C', wt, 'diff', '--name-only', '--no-renames', '-z', mb, 'HEAD']).split('\0').filter(Boolean);
+  const files = git(['-C', wt, 'diff', '--name-only', '--no-renames', '-z', mb, 'HEAD'], { raw: true }).split('\0').filter(Boolean);
   return files.filter((f) => !paths.some((p) => { const x = norm(p); return !x || f === x || f.startsWith(x + '/'); }));
 }
 

@@ -102,14 +102,16 @@ function scan() {
       }
     };
     scanPatch(diff);
+    // remerge shows nothing for merges with 3+ parents; fail closed rather than scan them partially
+    for (const sha of git(['rev-list', '--min-parents=3', `${mb}..HEAD`]).split('\n').filter(Boolean)) hit('octopus-merge', 0, 'unscanned', sha);
     scanFiles(git(['diff', '--text', '--no-ext-diff', '--no-textconv', '--name-status', '-z', '--diff-filter=AR', mb, 'HEAD']));
     scanPatch(git(['-c', 'core.quotePath=false', 'log', '-p', '--diff-merges=remerge', '--text', '--no-color', '--no-ext-diff', '--no-textconv', '--unified=0', '--format=commit:%H', `${mb}..HEAD`], { maxBuffer: 64 << 20 }));
     scanFiles(git(['log', '--diff-merges=remerge', '--text', '--no-ext-diff', '--no-textconv', '--name-status', '--no-renames', '-z', '--diff-filter=A', '--format=commit:%H', `${mb}..HEAD`], { maxBuffer: 64 << 20 }));
     ledger('scan', { result: hits ? 'fail' : 'pass', hits });
     return hits ? 3 : 0;
-  } catch {
+  } catch (e) {
     ledger('scan', { result: 'error', hits: 0 });
-    die('cannot scan branch against base', 2);
+    die(`cannot scan branch against base${e?.code === 'ENOBUFS' ? ': branch patch exceeds 64MB, split the branch' : ''}`, 2);
   }
 }
 

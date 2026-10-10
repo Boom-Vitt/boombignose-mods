@@ -247,4 +247,27 @@ test('run unit: moving integration head changes check and gate progress keys', (
   for (const step of ['check', 'gate']) assert.equal(r.ran.filter((a) => a.stream === 'watched' && a.do === step).length, 2, `${step} must re-run after the integration merge`);
   assert.equal(r.actions[0].do, 'review', 'stale acceptance must not stop as no progress');
 });
+test('scan unit: octopus merge fails closed', () => {
+  const dir = repo('scan-octopus-unit'), wt = join(T, 'scan-octopus-feature');
+  git(dir, 'worktree', 'add', '-q', '-b', 'feature/octopus', wt, 'main');
+  for (const b of ['a', 'b']) {
+    const side = join(T, `scan-octopus-${b}`);
+    git(dir, 'worktree', 'add', '-q', '-b', `feature/${b}`, side, 'main');
+    writeFileSync(join(side, `${b}.txt`), b + '\n'); commit(side);
+  }
+  git(wt, 'merge', '-q', '--no-ff', '-m', 'octopus fixture', 'feature/a', 'feature/b');
+  const sha = git(wt, 'rev-parse', '--short=7', 'HEAD');
+  const r = plan(wt, 'scan', '--base', 'main');
+  assert.equal(r.code, 3);
+  assert.ok(r.out === `octopus-merge:0 unscanned @${sha}\n`, 'octopus merge must be reported');
+});
+test('outsidePaths keeps a leading space in the first changed path', () => {
+  const dir = repo('outside-space'), wt = join(T, 'outside-space-feature');
+  git(dir, 'worktree', 'add', '-q', '-b', 'feature/space', wt, 'main');
+  mkdirSync(join(wt, ' src')); writeFileSync(join(wt, ' src/x'), 'x\n'); commit(wt);
+  const r = run(wt, 'node', ['--input-type=module', '-e',
+    `import { outsidePaths } from ${JSON.stringify(join(S, 'lib/bbn-node.mjs'))}; console.log(JSON.stringify(outsidePaths('.', 'main', ['src/'])));`]);
+  assert.equal(r.code, 0, r.out);
+  assert.deepEqual(JSON.parse(r.out), [' src/x']);
+});
 process.exitCode = failures ? 1 : 0;
