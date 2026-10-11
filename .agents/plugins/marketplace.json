@@ -5,10 +5,10 @@
   },
   "plugins": [
     {
-      "name": "boom-big-nose-workflow",
+      "name": "bbnw",
       "source": {
         "source": "local",
-        "path": "./boom-big-nose-workflow"
+        "path": "./bbnw"
       },
       "policy": {
         "installation": "AVAILABLE",
