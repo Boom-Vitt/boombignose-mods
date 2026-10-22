@@ -1,3 +1,15 @@
+<!-- BBN:HEADER:START -->
+<div align="center">
+
+<img src=".github/brand/banner.svg" width="100%" alt="BoomBigNose Mods — Claude Code mods: context bar, agents panel, PDPA blur" />
+
+<a href="https://github.com/Boom-Vitt/boombignose-mods/stargazers"><img src="https://img.shields.io/github/stars/Boom-Vitt/boombignose-mods?style=flat-square&color=14b8a6&labelColor=0b1220" alt="stars" /></a>
+<a href="https://github.com/Boom-Vitt/boombignose-mods/commits/main"><img src="https://img.shields.io/github/last-commit/Boom-Vitt/boombignose-mods?style=flat-square&color=14b8a6&labelColor=0b1220" alt="last commit" /></a>
+<a href="https://github.com/Boom-Vitt"><img src="https://img.shields.io/badge/by-BoomBigNose-14b8a6?style=flat-square&labelColor=0b1220" alt="by BoomBigNose" /></a>
+
+</div>
+<!-- BBN:HEADER:END -->
+
 # boombignose-mods
 
 มอด (mod) สำหรับ Claude Code: ตัวช่วยลดความเสี่ยงในการส่งข้อมูลส่วนบุคคลให้โมเดล (`pdpa-thai`) แถบแสดงการใช้ context (`context-bar`) แผงรายการ agent (`agents-panel`) และเวิร์กโฟลว์ multi-agent (`bbnw`)
@@ -292,3 +304,15 @@ claude plugin test pdpa-thai
 ## ที่เก็บโค้ดต้นฉบับ
 
 โครงการนี้เผยแพร่เฉพาะที่ https://github.com/Boom-Vitt/boombignose-mods และผ่าน marketplace `boombignose-mods` ที่เพิ่มจากที่เก็บนี้ ผู้ดูแลโครงการไม่ได้ดูแล fork, mirror หรือสำเนาที่อัปโหลดซ้ำในที่อื่น ควรตรวจสอบโค้ดก่อนติดตั้งจากแหล่งอื่น
+
+<!-- BBN:FOOTER:START -->
+---
+
+<div align="center">
+
+**สร้างโดย [BoomBigNose](https://github.com/Boom-Vitt)** · [Kruoop.com](https://kruoop.com) แหล่งเรียน AI + คอมมูนิตี้ · [Seeneo.ai](https://seeneo.ai) · [YouTube 220K](https://www.youtube.com/@BoomBigNose)
+
+<sub>ถ้าโปรเจกต์นี้มีประโยชน์ กด ⭐ ให้กำลังใจกันได้เลย</sub>
+
+</div>
+<!-- BBN:FOOTER:END -->
